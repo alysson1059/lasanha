@@ -34,6 +34,8 @@
         </div>
     </header>
 
+   <!-- ABA 1: CARDÁPIO (Conteúdo Principal) -->
+<section id="aba-cardapio" class="secao-aba">
     <nav class="categories">
         <button class="cat-btn active">Promoções</button>
         <button class="cat-btn">Panquecas</button>
@@ -43,25 +45,66 @@
 
     <main class="menu-container">
         <div class="products-grid" id="products-list">
-            <!-- Os itens do Firebase aparecerão aqui -->
+            <!-- Itens do Firebase -->
         </div>
     </main>
+</section>
 
-    <footer class="bottom-nav">
-        <div class="nav-item active">
-            <i class="fa-solid fa-utensils"></i>
-            <span>Cardápio</span>
+<!-- ABA 2: PEDIDOS (Histórico) -->
+<section id="aba-pedidos" class="secao-aba" style="display: none;">
+    <div style="padding: 20px;">
+        <h2 style="color: var(--vinho-logo);">Meus Pedidos</h2>
+        <div id="lista-historico">
+            <p style="text-align: center; margin-top: 50px; color: #777;">
+                Digite seu telefone no perfil para ver seu histórico.
+            </p>
         </div>
-       <div class="nav-item" onclick="openCart()">
-            <div id="cart-count" class="cart-badge">0</div>
-            <i class="fa-solid fa-cart-shopping"></i>
-            <span>Pedidos</span>
-        </div>
-        <div class="nav-item">
-            <i class="fa-solid fa-user"></i>
-            <span>Perfil</span>
-        </div>
-    </footer>
+    </div>
+</section>
+
+<!-- ABA 3: PERFIL (Dados do Cliente) -->
+<section id="aba-perfil" class="secao-aba" style="display: none;">
+    <div style="padding: 20px;">
+        <h2 style="color: var(--vinho-logo); margin-bottom: 20px;">Meu Perfil</h2>
+        <form id="perfil-form" class="admin-card">
+            <div class="form-group">
+                <label>Nome Completo</label>
+                <input type="text" id="user-name" placeholder="Como quer ser chamado?">
+            </div>
+            <div class="form-group">
+                <label>WhatsApp (Somente números)</label>
+                <input type="number" id="user-phone" placeholder="Ex: 79999999999">
+            </div>
+            <div class="form-group">
+                <label>Endereço de Entrega</label>
+                <textarea id="user-address" rows="3" placeholder="Rua, número, bairro e referência"></textarea>
+            </div>
+            <button type="submit" class="btn-save">Salvar Dados</button>
+        </form>
+    </div>
+</section>
+
+  <footer class="bottom-nav">
+    <div class="nav-item active" onclick="trocarAba('aba-cardapio', this)">
+        <i class="fa-solid fa-utensils"></i>
+        <span>Cardápio</span>
+    </div>
+    <div class="nav-item" onclick="trocarAba('aba-pedidos', this)">
+        <i class="fa-solid fa-receipt"></i>
+        <span>Pedidos</span>
+    </div>
+    <div class="nav-item" onclick="trocarAba('aba-perfil', this)">
+        <i class="fa-solid fa-user"></i>
+        <span>Perfil</span>
+    </div>
+</footer>
+
+<!-- Carrinho Flutuante (Ficará acima do menu) -->
+<div id="btn-carrinho-flutuante" onclick="toggleCart()" style="display: none;">
+    <div id="cart-count" class="cart-badge">0</div>
+    <i class="fa-solid fa-bag-shopping"></i>
+    <span>Ver Sacola</span>
+</div>
 
     <!-- Scripts do Firebase vão aqui depois -->
   <script type="module" src="script.js"></script>
