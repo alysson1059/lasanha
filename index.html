@@ -80,10 +80,10 @@
             </div>
 
             <div class="form-group">
-                <label><i class="fa-brands fa-whatsapp"></i> WhatsApp</label>
-                <input type="number" id="user-phone" placeholder="79999999999" required>
-            </div>
-
+    <label><i class="fa-brands fa-whatsapp"></i> WhatsApp</label>
+    <!-- Alterado para type="text" e adicionado o evento oninput -->
+    <input type="text" id="user-phone" placeholder="(79) 99999-9999" maxlength="15" oninput="maskPhone(this)">
+</div>
             <div style="margin-top: 20px; border-top: 1px dashed #ddd; padding-top: 20px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                     <label style="margin: 0; font-weight: bold; color: var(--vinho-logo);">Endereço de Entrega</label>
