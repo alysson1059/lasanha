@@ -27,6 +27,32 @@
         padding-bottom: 80px; 
     }
 
+      .promo-box { 
+    display: flex; 
+    align-items: center; 
+    gap: 10px; 
+    background: #fff9f9; /* Um tom de rosa/vinho bem clarinho */
+    padding: 15px; 
+    border-radius: 8px; 
+    margin-top: 10px;
+    border: 1px dashed var(--vinho-logo); /* Borda tracejada em vinho */
+    color: var(--vinho-logo);
+}
+
+.promo-box input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+.promo-box input[type="number"] {
+    width: 70px;
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    text-align: center;
+}
+
     .admin-container { padding: 20px; max-width: 900px; margin: 0 auto; }
 
     /* Tela de Login */
@@ -173,7 +199,11 @@
                             </select>
                         </div>
                     </div>
-                    <div class="promo-box" style="background: #222; padding: 10px; border-radius: 8px; border: 1px dashed var(--accent);">
+                   <div class="promo-box">
+    <input type="checkbox" id="p-onsale"> 
+    <strong>Colocar em Promoção?</strong>
+    <input type="number" id="p-discount" placeholder="%">
+</div>
                         <input type="checkbox" id="p-onsale"> <strong>Colocar em Promoção?</strong>
                         <input type="number" id="p-discount" placeholder="%" style="width: 60px; margin-left: 10px; background: #000; color: #fff; border: 1px solid #444;">
                     </div>
