@@ -225,28 +225,32 @@ window.removeItem = (index) => {
 };
 // 3. FINALIZAR NO WHATSAPP (COM CORREÇÃO PARA O ERRO NULL)
 const checkoutBtn = document.querySelector('.btn-checkout');
+
 if (checkoutBtn) {
     checkoutBtn.addEventListener('click', () => {
         const perfil = JSON.parse(localStorage.getItem('perfilCasaLasanha'));
         
-        // 1. Verifica se os novos campos obrigatórios estão preenchidos
+        // Captura a forma de pagamento selecionada
+        const formaPagamento = document.getElementById('payment-method').value;
+
         if (!perfil || !perfil.telefone || !perfil.rua || !perfil.numero) {
             alert("Por favor, preencha seu endereço e telefone no Perfil antes de pedir.");
-            // Redireciona para a aba de perfil (índice 2 do menu inferior)
             trocarAba('aba-perfil', document.querySelectorAll('.nav-item')[2]); 
             return;
         }
 
         if (cart.length === 0) return alert("Seu carrinho está vazio!");
 
-        // 2. Monta o endereço formatado para facilitar a entrega
         const enderecoCompleto = `${perfil.rua}, Nº ${perfil.numero}${perfil.cep ? ', CEP: ' + perfil.cep : ''} (${perfil.referencia || 'Sem ref.'})`;
 
-        // 3. Formata a mensagem para o WhatsApp
         let message = `*Pedido Casa da Lasanha*\n\n`;
         message += `*Cliente:* ${perfil.nome}\n`;
-        message += `*Telefone:* ${perfil.telefone}\n`; // Mantém a máscara (79) 9... para leitura humana
-        message += `*Endereço:* ${enderecoCompleto}\n\n`;
+        message += `*Telefone:* ${perfil.telefone}\n`;
+        message += `*Endereço:* ${enderecoCompleto}\n`;
+        
+        // ADICIONE ESTA LINHA NA MENSAGEM:
+        message += `*Pagamento:* ${formaPagamento}\n\n`;
+        
         message += `*ITENS DO PEDIDO:*\n`;
         
         let total = 0;
@@ -257,13 +261,9 @@ if (checkoutBtn) {
 
         message += `\n*TOTAL: R$ ${total.toFixed(2)}*`;
 
-        // 4. Limpeza do número da LOJA (apenas números para a API do WhatsApp)
         const phoneLoja = "5579996737203"; 
-        
-        // 5. Abre o link seguro com o texto codificado
         window.open(`https://wa.me/${phoneLoja}?text=${encodeURIComponent(message)}`, '_blank');
 
-        // Limpa o carrinho e fecha o modal após o envio bem-sucedido
         cart = [];
         updateCartUI();
         toggleCart();
