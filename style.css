@@ -61,6 +61,14 @@ body { background: var(--bg); padding-bottom: 80px; }
     object-fit: contain; 
 }
 
+.product-image-square {
+    width: 100%;           /* Ocupa toda a largura do card */
+    aspect-ratio: 1 / 1;    /* Força a proporção 1:1 (quadrado perfeito) */
+    object-fit: cover;     /* Corta as bordas da imagem para preencher o quadrado sem distorcer */
+    object-position: center; /* Garante que o foco do corte seja o centro da foto */
+    display: block;
+}
+
 .text-info { margin-left: 15px; margin-bottom: 10px; }
 .text-info h1 { font-size: 1.5rem; color: #fff; text-shadow: 1px 1px 3px #000; }
 .text-info p { 
