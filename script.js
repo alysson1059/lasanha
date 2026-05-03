@@ -259,14 +259,39 @@ if (checkoutBtn) {
         
         message += `*ITENS DO PEDIDO:*\n`;
         
-        let total = 0;
+      let total = 0;
+        cart.forEach(item => {
+            total += item.price * item.quantity;
+        });
+
+        // 2. SEGUNDO: Validar o troco (se for dinheiro)
+        if (formaPagamento === 'Dinheiro' && trocoPara) {
+            if (parseFloat(trocoPara) <= total) {
+                alert(`O valor para troco (R$ ${parseFloat(trocoPara).toFixed(2)}) deve ser maior que o total do pedido (R$ ${total.toFixed(2)})!`);
+                return; // Para o código aqui e não abre o WhatsApp
+            }
+        }
+
+        // 3. TERCEIRO: Montar a mensagem agora que já temos o total calculado
+        let message = `*Pedido Casa da Lasanha*\n\n`;
+        message += `*Cliente:* ${perfil.nome}\n`;
+        message += `*Telefone:* ${perfil.telefone}\n`;
+        message += `*Endereço:* ${enderecoCompleto}\n`;
+        message += `*Pagamento:* ${formaPagamento}\n`;
+        
+        if (formaPagamento === 'Dinheiro' && trocoPara) {
+            message += `*Troco para:* R$ ${parseFloat(trocoPara).toFixed(2)}\n`;
+        }
+        
+        message += `\n*ITENS DO PEDIDO:*\n`;
+        
         cart.forEach(item => {
             message += `• ${item.quantity}x ${item.name} - R$ ${(item.price * item.quantity).toFixed(2)}\n`;
-            total += item.price * item.quantity;
         });
 
         message += `\n*TOTAL: R$ ${total.toFixed(2)}*`;
 
+        // 4. QUARTO: Abrir o WhatsApp e limpar o carrinho
         const phoneLoja = "5579996737203"; 
         window.open(`https://wa.me/${phoneLoja}?text=${encodeURIComponent(message)}`, '_blank');
 
