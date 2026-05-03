@@ -253,12 +253,12 @@ if (checkoutBtn) {
 
         // 5. Validação do troco (se a forma de pagamento for Dinheiro)
         if (formaPagamento === 'Dinheiro' && trocoPara) {
-            const valorTrocoNum = parseFloat(trocoPara);
-            if (valorTrocoNum <= totalPedido) {
-                alert(`O valor para troco (R$ ${valorTrocoNum.toFixed(2)}) deve ser maior que o total do pedido (R$ ${totalPedido.toFixed(2)})!`);
-                return; // Interrompe a execução para não abrir o WhatsApp com erro
-            }
-        }
+           const valorTrocoNum = parseFloat(trocoPara.replace(/\./g, "").replace(",", "."));
+          if (valorTrocoNum <= totalPedido) {
+        alert(`O valor para troco (R$ ${valorTrocoNum.toFixed(2).replace(".", ",")}) deve ser maior que o total do pedido!`);
+        return;
+    }
+}
 
         // 6. Montagem da mensagem (Declarada apenas UMA vez aqui)
         const enderecoCompleto = `${perfil.rua}, Nº ${perfil.numero}${perfil.cep ? ', CEP: ' + perfil.cep : ''} (${perfil.referencia || 'Sem ref.'})`;
