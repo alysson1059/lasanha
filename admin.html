@@ -143,32 +143,40 @@
         <h1 style="color: var(--vinho-light);">Painel Casa da Lasanha</h1>
 
         <!-- SEÇÃO: STATUS E FRETE -->
-        <div class="admin-card">
-            <h3><i class="fa-solid fa-gear"></i> Configurações da Loja</h3>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                <div class="form-group">
-                    <label>Status da Loja</label>
-                    <select id="store-status-select">
-                        <option value="open">Aberta (Aceitando Pedidos)</option>
-                        <option value="closed">Fechada (Apenas Consulta)</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Entrega Grátis até (KM)</label>
-                    <input type="number" id="free-km" placeholder="Ex: 5">
-                </div>
-                <div class="form-group">
-                    <label>Valor por KM Adicional (R$)</label>
-                    <input type="text" id="km-value" placeholder="Ex: 2,00">
-                </div>
-                <div class="form-group">
-                    <label>Taxa Fixa / Mínima (R$)</label>
-                    <input type="text" id="fixed-delivery" placeholder="Ex: 5,00">
-                </div>
+       <div class="admin-card">
+    <h3><i class="fa-solid fa-gear"></i> Configurações da Loja</h3>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+        <div class="form-group" style="grid-column: span 2;">
+            <label>Endereço da Loja (Para cálculo de frete)</label>
+            <div style="display: flex; gap: 10px;">
+                <input type="text" id="store-address" style="flex: 1;" placeholder="Rua, Número, Bairro, Cidade">
+                <button type="button" onclick="getCurrentLocation()" style="background: var(--accent); color: white; border: none; border-radius: 8px; padding: 0 15px;" title="Pegar minha localização atual">
+                    <i class="fa-solid fa-location-crosshairs"></i>
+                </button>
             </div>
-            <button class="btn-save" id="btn-save-configs" style="background: var(--accent); font-size: 0.8rem; padding: 10px;">Salvar Configurações</button>
         </div>
-
+        <div class="form-group">
+            <label>Status da Loja</label>
+            <select id="store-status-select">
+                <option value="open">Aberta (Aceitando Pedidos)</option>
+                <option value="closed">Fechada (Apenas Consulta)</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Entrega Grátis até (KM)</label>
+            <input type="number" id="free-km">
+        </div>
+        <div class="form-group">
+            <label>Valor por KM Adicional (R$)</label>
+            <input type="text" id="km-value">
+        </div>
+        <div class="form-group">
+            <label>Taxa Fixa / Mínima (R$)</label>
+            <input type="text" id="fixed-delivery">
+        </div>
+    </div>
+    <button class="btn-save" id="btn-save-configs" style="background: var(--accent); font-size: 0.8rem; padding: 10px;">Salvar Configurações</button>
+</div>
         <!-- SEÇÃO: CADASTRO (GAVETA) -->
         <div class="accordion" id="add-item-accordion">
             <div class="accordion-header" onclick="this.parentElement.classList.toggle('active')">
