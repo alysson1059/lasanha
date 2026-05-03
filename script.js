@@ -229,39 +229,47 @@ if (checkoutBtn) {
     checkoutBtn.addEventListener('click', () => {
         const perfil = JSON.parse(localStorage.getItem('perfilCasaLasanha'));
         
-        // Verifica se os novos campos obrigatórios estão preenchidos
+        // 1. Verifica se os novos campos obrigatórios estão preenchidos
         if (!perfil || !perfil.telefone || !perfil.rua || !perfil.numero) {
             alert("Por favor, preencha seu endereço e telefone no Perfil antes de pedir.");
+            // Redireciona para a aba de perfil (índice 2 do menu inferior)
             trocarAba('aba-perfil', document.querySelectorAll('.nav-item')[2]); 
             return;
         }
 
         if (cart.length === 0) return alert("Seu carrinho está vazio!");
 
-        // Monta o endereço formatado para o entregador
+        // 2. Monta o endereço formatado para facilitar a entrega
         const enderecoCompleto = `${perfil.rua}, Nº ${perfil.numero}${perfil.cep ? ', CEP: ' + perfil.cep : ''} (${perfil.referencia || 'Sem ref.'})`;
 
+        // 3. Formata a mensagem para o WhatsApp
         let message = `*Pedido Casa da Lasanha*\n\n`;
         message += `*Cliente:* ${perfil.nome}\n`;
-        message += `*Telefone:* ${perfil.telefone}\n`;
+        message += `*Telefone:* ${perfil.telefone}\n`; // Mantém a máscara (79) 9... para leitura humana
         message += `*Endereço:* ${enderecoCompleto}\n\n`;
+        message += `*ITENS DO PEDIDO:*\n`;
         
         let total = 0;
         cart.forEach(item => {
-            message += `${item.quantity}x ${item.name} - R$ ${(item.price * item.quantity).toFixed(2)}\n`;
+            message += `• ${item.quantity}x ${item.name} - R$ ${(item.price * item.quantity).toFixed(2)}\n`;
             total += item.price * item.quantity;
         });
 
-        message += `\n*Total: R$ ${total.toFixed(2)}*`;
+        message += `\n*TOTAL: R$ ${total.toFixed(2)}*`;
+
+        // 4. Limpeza do número da LOJA (apenas números para a API do WhatsApp)
+        const phoneLoja = "5579996737203"; 
         
-        const phone = "5579996737203"; 
-        window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank');
-        
+        // 5. Abre o link seguro com o texto codificado
+        window.open(`https://wa.me/${phoneLoja}?text=${encodeURIComponent(message)}`, '_blank');
+
+        // Limpa o carrinho e fecha o modal após o envio bem-sucedido
         cart = [];
         updateCartUI();
         toggleCart();
     });
 }
+
 window.toggleCart = () => {
     const modal = document.getElementById('cart-modal');
     if (modal) {
@@ -315,18 +323,26 @@ function carregarDadosPerfil() {
 
 document.getElementById('perfil-form').onsubmit = (e) => {
     e.preventDefault();
+    
+    const telefone = document.getElementById('user-phone').value;
+    
+    // Validação: Um telefone formatado (XX) XXXXX-XXXX tem entre 14 e 15 caracteres
+    if (telefone.length < 14) {
+        alert("Por favor, insira o número de WhatsApp completo com DDD.");
+        return;
+    }
+
     const perfil = {
         nome: document.getElementById('user-name').value,
-        telefone: document.getElementById('user-phone').value,
+        telefone: telefone,
         rua: document.getElementById('user-street').value,
         numero: document.getElementById('user-number').value,
         cep: document.getElementById('user-cep').value,
         referencia: document.getElementById('user-ref').value
     };
+    
     localStorage.setItem('perfilCasaLasanha', JSON.stringify(perfil));
-
-  carregarHistoricoPedidos(perfil.telefone);
-  
+    carregarHistoricoPedidos(perfil.telefone); 
     mostrarAviso("Perfil Salvo!");
 };
 
@@ -420,3 +436,22 @@ document.addEventListener('DOMContentLoaded', () => {
     setupCategoryButtons();
     carregarDadosPerfil(); // <--- NÃO ESQUEÇA ESTA
 });
+
+window.maskPhone = (input) => {
+    let value = input.value.replace(/\D/g, ""); // Remove tudo que não é número
+    
+    if (value.length > 11) value = value.slice(0, 11); // Limita a 11 dígitos
+
+    // Aplica a formatação (XX) XXXXX-XXXX
+    if (value.length > 10) {
+        value = value.replace(/^(\d{2})(\d{5})(\d{4}).*/, "($1) $2-$3");
+    } else if (value.length > 5) {
+        value = value.replace(/^(\d{2})(\d{4,5})(\d{0,4}).*/, "($1) $2-$3");
+    } else if (value.length > 2) {
+        value = value.replace(/^(\d{2})(\d{0,5})/, "($1) $2");
+    } else if (value.length > 0) {
+        value = value.replace(/^(\d*)/, "($1");
+    }
+    
+    input.value = value;
+};
