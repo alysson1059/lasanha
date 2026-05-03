@@ -8,61 +8,93 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.min.js"></script>
-    <style>
-        :root {
-            --vinho: #5C1518;
-            --vinho-light: #7a1d21;
-            --accent: #5D7D2B;
-            --dark-bg: #121212;
-            --card-bg: #1e1e1e;
-        }
+   <style>
+    :root {
+        --vinho: #5C1518;
+        --vinho-light: #7a1d21;
+        --accent: #5D7D2B;
+        --bg-light: #f4f4f4; /* Cinza bem clarinho para o fundo */
+        --card-bg: #ffffff; /* Branco para os cards */
+        --text-dark: #333333;
+    }
 
-        body { background-color: var(--dark-bg); color: #fff; font-family: 'Segoe UI', sans-serif; margin: 0; padding-bottom: 80px; }
-        .admin-container { padding: 20px; max-width: 900px; margin: 0 auto; }
-        
-        /* Cards de Configuração */
-        .admin-card { background: var(--card-bg); border-radius: 12px; padding: 20px; margin-bottom: 20px; border: 1px solid #333; }
-        .form-group { margin-bottom: 15px; display: flex; flex-direction: column; }
-        .form-group label { font-size: 0.8rem; color: #aaa; margin-bottom: 5px; text-transform: uppercase; }
-        .form-group input, .form-group select, .form-group textarea { 
-            padding: 12px; border: 1px solid #333; border-radius: 8px; background: #000; color: #fff; 
-        }
+    body { 
+        background-color: var(--bg-light); 
+        color: var(--text-dark); 
+        font-family: 'Segoe UI', sans-serif; 
+        margin: 0; 
+        padding-bottom: 80px; 
+    }
 
-        /* Botão Flutuante Ver Layout */
-        .btn-view-site { 
-            position: fixed; bottom: 20px; right: 20px; background: var(--accent); color: white; 
-            padding: 15px 25px; border-radius: 50px; text-decoration: none; font-weight: bold; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5); z-index: 1000; display: flex; align-items: center; gap: 10px;
-        }
+    .admin-container { padding: 20px; max-width: 900px; margin: 0 auto; }
+    
+    h1, h2, h3 { color: var(--vinho); }
 
-        /* Sanfona / Gavetas */
-        .accordion { margin-bottom: 10px; border-radius: 8px; overflow: hidden; border: 1px solid #333; }
-        .accordion-header { 
-            background: #252525; padding: 15px; cursor: pointer; display: flex; 
-            justify-content: space-between; align-items: center; border-left: 4px solid var(--vinho);
-        }
-        .accordion-content { display: none; padding: 15px; background: #1a1a1a; border-top: 1px solid #333; }
-        .accordion.active .accordion-content { display: block; }
-        .accordion.active i.fa-chevron-down { transform: rotate(180deg); }
+    /* Cards de Configuração */
+    .admin-card { 
+        background: var(--card-bg); 
+        border-radius: 12px; 
+        padding: 20px; 
+        margin-bottom: 20px; 
+        border: 1px solid #ddd; 
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
 
-        /* Estilo dos itens na lista */
-        .admin-item-card { 
-            display: flex; align-items: center; gap: 15px; background: #000; 
-            padding: 10px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #222;
-        }
-        .btn-action { padding: 8px; border-radius: 5px; border: none; cursor: pointer; color: white; font-size: 0.9rem; }
-        .btn-edit { background: #3498db; }
-        .btn-status { background: #f39c12; }
-        .btn-delete { background: #e74c3c; }
+    .form-group { margin-bottom: 15px; display: flex; flex-direction: column; }
+    .form-group label { font-size: 0.8rem; color: #666; margin-bottom: 5px; font-weight: bold; }
+    
+    .form-group input, .form-group select, .form-group textarea { 
+        padding: 12px; border: 1px solid #ccc; border-radius: 8px; background: #fff; color: #333; 
+    }
 
-        .btn-save { 
-            background: var(--vinho); color: white; border: none; padding: 15px; 
-            border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; 
-        }
+    .form-group input:focus { border-color: var(--vinho); outline: none; }
 
-        #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 2000; display: flex; align-items: center; justify-content: center; }
-        #crop-area { width: 100%; margin-top: 10px; min-height: 350px; background: #000; border-radius: 8px; }
-    </style>
+    /* Botão Flutuante Ver Layout */
+    .btn-view-site { 
+        position: fixed; bottom: 20px; right: 20px; background: var(--accent); color: white; 
+        padding: 15px 25px; border-radius: 50px; text-decoration: none; font-weight: bold; 
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 1000; display: flex; align-items: center; gap: 10px;
+    }
+
+    /* Sanfona / Gavetas */
+    .accordion { margin-bottom: 10px; border-radius: 8px; overflow: hidden; border: 1px solid #ddd; background: #fff; }
+    .accordion-header { 
+        background: #f9f9f9; padding: 15px; cursor: pointer; display: flex; 
+        justify-content: space-between; align-items: center; border-left: 4px solid var(--vinho);
+        color: var(--vinho);
+    }
+    .accordion-content { display: none; padding: 15px; background: #fff; border-top: 1px solid #eee; }
+    .accordion.active .accordion-content { display: block; }
+    .accordion.active i.fa-chevron-down { transform: rotate(180deg); }
+
+    /* Estilo dos itens na lista */
+    .admin-item-card { 
+        display: flex; align-items: center; gap: 15px; background: #fdfdfd; 
+        padding: 10px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #eee;
+    }
+    
+    .btn-action { padding: 8px 12px; border-radius: 5px; border: none; cursor: pointer; color: white; font-size: 0.9rem; }
+    .btn-edit { background: #3498db; }
+    .btn-status { background: #f39c12; }
+    .btn-delete { background: #e74c3c; }
+
+    .btn-save { 
+        background: var(--vinho); color: white; border: none; padding: 15px; 
+        border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; 
+    }
+
+    /* Overlay de Login Branco */
+    #login-overlay { 
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+        background: var(--bg-light); z-index: 2000; display: flex; align-items: center; justify-content: center; 
+    }
+    .login-box { 
+        background: #fff; padding: 40px; border-radius: 15px; text-align: center; 
+        border: 1px solid #ddd; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 90%; max-width: 380px; 
+    }
+
+    #crop-area { width: 100%; margin-top: 10px; min-height: 350px; background: #eee; border-radius: 8px; }
+</style>
 </head>
 <body>
 
