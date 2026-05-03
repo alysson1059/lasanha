@@ -6,30 +6,30 @@
     <title>Painel Administrativo - Casa da Lasanha</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Importante para o Recorte -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.min.js"></script>
     <style>
-        /* Estilos específicos para o painel de administração */
         .admin-container { padding: 20px; max-width: 800px; margin: 0 auto; background: #fff; min-height: 100vh; }
         .form-group { margin-bottom: 15px; display: flex; flex-direction: column; }
         .form-group label { font-weight: bold; margin-bottom: 5px; color: #333; }
         .form-group input, .form-group select, .form-group textarea { padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
         .btn-save { background: var(--accent); color: white; border: none; padding: 15px; border-radius: 5px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; }
         .btn-logout { background: #ff6b6b; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; float: right; }
-        
-        /* Login Overlay */
         #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #333; z-index: 1000; display: flex; align-items: center; justify-content: center; color: white; }
         .login-box { background: #fff; padding: 30px; border-radius: 10px; width: 90%; max-width: 400px; color: #333; text-align: center; }
-        
         .status-toggle { display: flex; align-items: center; justify-content: space-between; background: #eee; padding: 15px; border-radius: 8px; margin-bottom: 25px; }
+        
+        /* Estilo para a área de recorte */
+        #crop-area { width: 100%; margin-top: 10px; min-height: 300px; background: #f0f0f0; border-radius: 5px; }
+        .promo-box { display: flex; align-items: center; gap: 10px; background: #fff9db; padding: 10px; border-radius: 5px; margin-top: 5px; }
     </style>
 </head>
 <body>
 
-    <!-- Tela de Login -->
     <div id="login-overlay">
         <div class="login-box">
-            <img src="logocasalasanha.jpg" alt="Logo" style="width: 80px; margin-bottom: 15px;">
+            <img src="logocasalasanha.png" alt="Logo" style="width: 80px; margin-bottom: 15px;">
             <h2>Acesso Restrito</h2>
             <p style="margin-bottom: 20px; font-size: 0.9rem;">Entre com suas credenciais de Administrador</p>
             <div class="form-group">
@@ -43,15 +43,13 @@
         </div>
     </div>
 
-    <!-- Conteúdo do Painel (Escondido até o login) -->
     <div class="admin-container" id="admin-content" style="display: none;">
         <button class="btn-logout" id="btn-logout">Sair</button>
         <h1 style="margin-bottom: 20px;">Painel da Casa da Lasanha</h1>
 
-        <!-- Controle de Abertura -->
         <div class="status-toggle">
             <span><strong>Status da Loja:</strong></span>
-            <select id="store-status-select" style="padding: 5px; border-radius: 5px;">
+            <select id="store-status-select">
                 <option value="open">Aberta</option>
                 <option value="closed">Fechada</option>
             </select>
@@ -59,7 +57,6 @@
 
         <hr style="margin-bottom: 25px; border: 0; border-top: 1px solid #eee;">
 
-        <!-- Cadastro de Produtos -->
         <h3>Cadastrar Novo Item</h3>
         <form id="product-form">
             <div class="form-group">
@@ -68,12 +65,15 @@
             </div>
             <div class="form-group">
                 <label>Descrição/Ingredientes</label>
-                <textarea id="p-desc" rows="3" placeholder="Ex: Massa fresca, carne moída, queijo..."></textarea>
+                <textarea id="p-desc" rows="2" placeholder="Ingredientes..."></textarea>
             </div>
+            
             <div class="form-group">
-                <label>Preço (R$)</label>
-                <input type="number" step="0.01" id="p-price" placeholder="Ex: 29.90" required>
+                <label>Preço Base (R$)</label>
+                <!-- Mudado para text para a máscara de 0,00 funcionar -->
+                <input type="text" id="p-price" placeholder="0,00" required>
             </div>
+
             <div class="form-group">
                 <label>Categoria</label>
                 <select id="p-category">
@@ -83,20 +83,28 @@
                     <option value="Refrigerantes">Refrigerantes</option>
                 </select>
             </div>
-            <div class="form-group">
-                <label>URL da Imagem do Prato</label>
-                <input type="text" id="p-image" placeholder="Cole o link da foto ou use o Firebase Storage">
+
+            <!-- Novos campos de Promoção -->
+            <div class="promo-box">
+                <input type="checkbox" id="p-onsale"> 
+                <label for="p-onsale" style="margin:0">Este item está em Promoção?</label>
+                <input type="number" id="p-discount" placeholder="%" style="width: 60px; padding: 5px;">
             </div>
-            <button type="submit" class="btn-save">Adicionar ao Cardápio</button>
+
+            <div class="form-group" style="margin-top:15px;">
+                <label>Foto do Prato (Será recortada 500x500)</label>
+                <input type="file" id="p-image-file" accept="image/*" required>
+                <!-- Área onde o Croppie vai aparecer -->
+                <div id="crop-area"></div>
+            </div>
+
+            <button type="submit" class="btn-save">Salvar no Cardápio</button>
         </form>
 
-        <h3 style="margin-top: 40px;">Itens Atuais</h3>
-        <div id="admin-product-list">
-            <!-- Lista de itens cadastrados para edição/exclusão aparecerá aqui -->
-        </div>
+        <h3 style="margin-top: 40px;">Gerenciar Cardápio</h3>
+        <div id="admin-product-list"></div>
     </div>
 
-    <!-- Scripts de configuração do Firebase devem vir aqui -->
     <script type="module" src="admin-script.js"></script>
 </body>
 </html>
