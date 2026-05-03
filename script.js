@@ -227,22 +227,24 @@ window.removeItem = (index) => {
 const checkoutBtn = document.querySelector('.btn-checkout');
 if (checkoutBtn) {
     checkoutBtn.addEventListener('click', () => {
-        // --- INSERIR O CÓDIGO AQUI (VALIDAÇÃO DE PERFIL) ---
         const perfil = JSON.parse(localStorage.getItem('perfilCasaLasanha'));
-        if (!perfil || !perfil.telefone || !perfil.endereco) {
+        
+        // Verifica se os novos campos obrigatórios estão preenchidos
+        if (!perfil || !perfil.telefone || !perfil.rua || !perfil.numero) {
             alert("Por favor, preencha seu endereço e telefone no Perfil antes de pedir.");
-            // Redireciona o usuário para a aba de perfil automaticamente
             trocarAba('aba-perfil', document.querySelectorAll('.nav-item')[2]); 
-            return; // Interrompe a execução para não abrir o WhatsApp sem dados
+            return;
         }
-        // --------------------------------------------------
 
         if (cart.length === 0) return alert("Seu carrinho está vazio!");
+
+        // Monta o endereço formatado para o entregador
+        const enderecoCompleto = `${perfil.rua}, Nº ${perfil.numero}${perfil.cep ? ', CEP: ' + perfil.cep : ''} (${perfil.referencia || 'Sem ref.'})`;
 
         let message = `*Pedido Casa da Lasanha*\n\n`;
         message += `*Cliente:* ${perfil.nome}\n`;
         message += `*Telefone:* ${perfil.telefone}\n`;
-        message += `*Endereço:* ${perfil.endereco}\n\n`;
+        message += `*Endereço:* ${enderecoCompleto}\n\n`;
         
         let total = 0;
         cart.forEach(item => {
@@ -255,7 +257,6 @@ if (checkoutBtn) {
         const phone = "5579996737203"; 
         window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank');
         
-        // Limpa o carrinho após o sucesso
         cart = [];
         updateCartUI();
         toggleCart();
@@ -277,31 +278,58 @@ document.addEventListener('DOMContentLoaded', () => {
     setupCategoryButtons();    // Ativa os cliques nos botões
 });
 
+// --- GEOLOCALIZAÇÃO REVERSA (Transformar GPS em Rua) ---
+window.getUserLocation = () => {
+    if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(async (position) => {
+            const { latitude, longitude } = position.coords;
+            try {
+                // Usando o OpenStreetMap (Gratuito) para buscar o endereço
+                const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
+                const data = await response.json();
+                
+                if (data.address) {
+                    document.getElementById('user-street').value = data.address.road || '';
+                    document.getElementById('user-cep').value = data.address.postcode || '';
+                    mostrarAviso("Localização aproximada carregada!");
+                }
+            } catch (error) {
+                mostrarAviso("Erro ao converter localização.");
+            }
+        });
+    }
+};
+
+// --- SALVAR E CARREGAR ---
 function carregarDadosPerfil() {
-    const dadosSalvos = JSON.parse(localStorage.getItem('perfilCasaLasanha'));
-    if (dadosSalvos) {
-        document.getElementById('user-name').value = dadosSalvos.nome || '';
-        document.getElementById('user-phone').value = dadosSalvos.telefone || '';
-        document.getElementById('user-address').value = dadosSalvos.endereco || '';
+    const dados = JSON.parse(localStorage.getItem('perfilCasaLasanha'));
+    if (dados) {
+        document.getElementById('user-name').value = dados.nome || '';
+        document.getElementById('user-phone').value = dados.telefone || '';
+        document.getElementById('user-street').value = dados.rua || '';
+        document.getElementById('user-number').value = dados.numero || '';
+        document.getElementById('user-cep').value = dados.cep || '';
+        document.getElementById('user-ref').value = dados.referencia || '';
     }
 }
 
-// Salvar dados quando clicar no botão do formulário
-if (perfilForm) {
-    perfilForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const perfil = {
-            nome: document.getElementById('user-name').value,
-            telefone: document.getElementById('user-phone').value,
-            endereco: document.getElementById('user-address').value
-        };
-        localStorage.setItem('perfilCasaLasanha', JSON.stringify(perfil));
-        alert("Perfil atualizado com sucesso!");
-        
-        // Após salvar, recarrega o histórico para mostrar os pedidos desse telefone
-        carregarHistoricoPedidos(perfil.telefone);
-    });
-}
+document.getElementById('perfil-form').onsubmit = (e) => {
+    e.preventDefault();
+    const perfil = {
+        nome: document.getElementById('user-name').value,
+        telefone: document.getElementById('user-phone').value,
+        rua: document.getElementById('user-street').value,
+        numero: document.getElementById('user-number').value,
+        cep: document.getElementById('user-cep').value,
+        referencia: document.getElementById('user-ref').value
+    };
+    localStorage.setItem('perfilCasaLasanha', JSON.stringify(perfil));
+
+  carregarHistoricoPedidos(perfil.telefone);
+  
+    mostrarAviso("Perfil Salvo!");
+};
+
 
 // FUNÇÃO PARA TROCAR AS ABAS
 window.trocarAba = (idAba, elemento) => {
