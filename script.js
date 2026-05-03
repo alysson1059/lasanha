@@ -15,23 +15,31 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 let cart = JSON.parse(localStorage.getItem('casaLasanhaCart')) || [];
+let currentCategory = "Promoções";
 
 // 1. ESCUTAR PRODUTOS EM TEMPO REAL
-function loadProducts() {
+function loadProducts(categoryFilter = "Promoções") {
     const q = collection(db, "produtos");
     
     onSnapshot(q, (snapshot) => {
         const productsList = document.getElementById('products-list');
-        if (!productsList) return; // Segurança caso o elemento não exista
+        if (!productsList) return;
         
         productsList.innerHTML = ''; 
+        let hasItems = false;
 
         snapshot.forEach((doc) => {
             const product = doc.data();
             const id = doc.id;
 
-            // Filtro de segurança: Só mostra se estiver disponível
-            if (product.available !== false) {
+            // LÓGICA DE FILTRO
+            // Se for a aba 'Promoções', mostra só quem tem onSale: true
+            // Se for outra aba, mostra se a categoria bater
+            const matchPromo = (categoryFilter === "Promoções" && product.onSale === true);
+            const matchCat = (product.category === categoryFilter);
+
+            if (product.available !== false && (matchPromo || matchCat)) {
+                hasItems = true;
                 const productCard = `
                     <div class="product-card" style="background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
                         <img src="${product.image || 'placeholder.jpg'}" style="width: 100%; height: 180px; object-fit: cover;">
@@ -39,7 +47,10 @@ function loadProducts() {
                             <h3 style="font-size: 1.1rem; color: #333;">${product.name}</h3>
                             <p style="font-size: 0.85rem; color: #777; margin: 5px 0;">${product.description}</p>
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
-                                <span style="font-weight: bold; color: var(--vinho-logo);">R$ ${parseFloat(product.price).toFixed(2)}</span>
+                                <div>
+                                    ${product.onSale ? `<small style="text-decoration:line-through; color:red">R$ ${(product.price / (1 - (product.discount/100))).toFixed(2)}</small><br>` : ''}
+                                    <span style="font-weight: bold; color: var(--vinho-logo);">R$ ${parseFloat(product.price).toFixed(2)}</span>
+                                </div>
                                 <button onclick="addToCart('${id}', '${product.name}', ${product.price})" 
                                     style="background: var(--accent); color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer;">
                                     <i class="fa-solid fa-plus"></i>
@@ -51,13 +62,31 @@ function loadProducts() {
                 productsList.innerHTML += productCard;
             }
         });
-        
-        // Atualiza status de carregando no perfil
-        const statusText = document.getElementById('store-status');
-        if (statusText) statusText.innerHTML = '<i class="fa-solid fa-clock"></i> Aberto agora';
+
+        // AVISO SE NÃO TIVER ITENS
+        if (!hasItems) {
+            productsList.innerHTML = `
+                <div style="grid-column: 1/-1; text-align: center; padding: 50px; color: #777;">
+                    <i class="fa-solid fa-utensils" style="font-size: 3rem; margin-bottom: 10px; opacity: 0.2;"></i>
+                    <p>No momento não temos itens em <strong>${categoryFilter}</strong>.</p>
+                </div>
+            `;
+        }
     });
 }
 
+// 2. LOGICA DOS BOTÕES DE CATEGORIA
+document.querySelectorAll('.cat-btn').forEach(button => {
+    button.addEventListener('click', (e) => {
+        // Remove 'active' de todos e coloca no clicado
+        document.querySelectorAll('.cat-btn').forEach(btn => btn.classList.remove('active'));
+        e.target.classList.add('active');
+        
+        // Recarrega os produtos filtrando pela categoria do botão
+        const selectedCat = e.target.innerText;
+        loadProducts(selectedCat);
+    });
+});
 // 2. LÓGICA DO CARRINHO
 window.addToCart = (id, name, price) => {
     const itemIndex = cart.findIndex(item => item.id === id);
