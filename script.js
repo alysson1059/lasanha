@@ -9,10 +9,11 @@ const firebaseConfig = {
 };
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, onSnapshot, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, collection, onSnapshot, doc, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const perfilForm = document.getElementById('perfil-form');
 
 let cart = JSON.parse(localStorage.getItem('casaLasanhaCart')) || [];
 let currentCategory = "Promoções";
@@ -165,22 +166,40 @@ function renderCartItems() {
 const checkoutBtn = document.querySelector('.btn-checkout');
 if (checkoutBtn) {
     checkoutBtn.addEventListener('click', () => {
+        // --- INSERIR O CÓDIGO AQUI (VALIDAÇÃO DE PERFIL) ---
+        const perfil = JSON.parse(localStorage.getItem('perfilCasaLasanha'));
+        if (!perfil || !perfil.telefone || !perfil.endereco) {
+            alert("Por favor, preencha seu endereço e telefone no Perfil antes de pedir.");
+            // Redireciona o usuário para a aba de perfil automaticamente
+            trocarAba('aba-perfil', document.querySelectorAll('.nav-item')[2]); 
+            return; // Interrompe a execução para não abrir o WhatsApp sem dados
+        }
+        // --------------------------------------------------
+
         if (cart.length === 0) return alert("Seu carrinho está vazio!");
-        let message = "*Pedido Casa da Lasanha*\n\n";
+
+        let message = `*Pedido Casa da Lasanha*\n\n`;
+        message += `*Cliente:* ${perfil.nome}\n`;
+        message += `*Telefone:* ${perfil.telefone}\n`;
+        message += `*Endereço:* ${perfil.endereco}\n\n`;
+        
         let total = 0;
         cart.forEach(item => {
             message += `${item.quantity}x ${item.name} - R$ ${(item.price * item.quantity).toFixed(2)}\n`;
             total += item.price * item.quantity;
         });
+
         message += `\n*Total: R$ ${total.toFixed(2)}*`;
-        const phone = "5579991089557"; 
+        
+        const phone = "5579996737203"; 
         window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank');
+        
+        // Limpa o carrinho após o sucesso
         cart = [];
         updateCartUI();
         toggleCart();
     });
 }
-
 window.toggleCart = () => {
     const modal = document.getElementById('cart-modal');
     if (modal) {
@@ -196,6 +215,32 @@ document.addEventListener('DOMContentLoaded', () => {
     updateCartUI();            // Atualiza o carrinho (se tiver algo salvo)
     setupCategoryButtons();    // Ativa os cliques nos botões
 });
+
+function carregarDadosPerfil() {
+    const dadosSalvos = JSON.parse(localStorage.getItem('perfilCasaLasanha'));
+    if (dadosSalvos) {
+        document.getElementById('user-name').value = dadosSalvos.nome || '';
+        document.getElementById('user-phone').value = dadosSalvos.telefone || '';
+        document.getElementById('user-address').value = dadosSalvos.endereco || '';
+    }
+}
+
+// Salvar dados quando clicar no botão do formulário
+if (perfilForm) {
+    perfilForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const perfil = {
+            nome: document.getElementById('user-name').value,
+            telefone: document.getElementById('user-phone').value,
+            endereco: document.getElementById('user-address').value
+        };
+        localStorage.setItem('perfilCasaLasanha', JSON.stringify(perfil));
+        alert("Perfil atualizado com sucesso!");
+        
+        // Após salvar, recarrega o histórico para mostrar os pedidos desse telefone
+        carregarHistoricoPedidos(perfil.telefone);
+    });
+}
 
 // FUNÇÃO PARA TROCAR AS ABAS
 window.trocarAba = (idAba, elemento) => {
@@ -215,4 +260,66 @@ window.trocarAba = (idAba, elemento) => {
 
     // 4. Se mudar de aba, sobe para o topo da página
     window.scrollTo(0, 0);
+};
+
+function carregarHistoricoPedidos(telefone) {
+    const listaHistorico = document.getElementById('lista-historico');
+    if (!telefone || !listaHistorico) return;
+
+    // Filtra pedidos onde o telefone do cliente é igual ao salvo no perfil
+    const q = query(
+        collection(db, "pedidos"), 
+        where("telefoneCliente", "==", telefone),
+        orderBy("data", "desc")
+    );
+
+    onSnapshot(q, (snapshot) => {
+        listaHistorico.innerHTML = '';
+        
+        if (snapshot.empty) {
+            listaHistorico.innerHTML = '<p style="text-align:center;">Nenhum pedido encontrado para este número.</p>';
+            return;
+        }
+
+        snapshot.forEach((docSnap) => {
+            const pedido = docSnap.data();
+            const id = docSnap.id;
+            const statusCor = pedido.status === 'cancelado' ? '#ff6b6b' : (pedido.status === 'finalizado' ? '#82c91e' : '#f39c12');
+
+            listaHistorico.innerHTML += `
+                <div class="admin-card" style="border-left: 5px solid ${statusCor}; margin-bottom: 10px; padding: 15px;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                        <div>
+                            <strong>Pedido #${id.slice(-5)}</strong><br>
+                            <small>${new Date(pedido.data.seconds * 1000).toLocaleString()}</small>
+                        </div>
+                        <span style="background: ${statusCor}; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; text-transform: uppercase;">
+                            ${pedido.status}
+                        </span>
+                    </div>
+                    <p style="font-size: 0.85rem; margin: 10px 0;">${pedido.resumoItens}</p>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <strong>Total: R$ ${pedido.total.toFixed(2)}</strong>
+                        ${pedido.status === 'pendente' ? `
+                            <button onclick="cancelarPedido('${id}')" style="background:none; border:none; color:red; cursor:pointer; font-size: 0.8rem;">
+                                <i class="fa-solid fa-trash"></i> Cancelar
+                            </button>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        });
+    });
+}
+
+// Função para o usuário deletar/cancelar o pedido se estiver pendente
+window.cancelarPedido = async (id) => {
+    if (confirm("Deseja realmente cancelar este pedido?")) {
+        try {
+            await updateDoc(doc(db, "pedidos", id), { status: 'cancelado' });
+            alert("Pedido cancelado.");
+        } catch (error) {
+            alert("Erro ao cancelar: " + error.message);
+        }
+    }
 };
