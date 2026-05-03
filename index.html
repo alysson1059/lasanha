@@ -176,11 +176,12 @@
                     <option value="Cartão de Crédito">Cartão de Crédito</option>
                 </select>
                 
-  <div id="troco-container" style="display: none; margin-top: 10px; padding: 10px; background: #fff; border: 1px solid #ddd; border-radius: 8px; animation: fadeIn 0.3s ease;">
+<div id="troco-container" style="display: none; margin-top: 10px; padding: 10px; background: #fff; border: 1px solid #ddd; border-radius: 8px;">
     <label style="display: block; font-size: 0.85rem; color: #555; margin-bottom: 5px;">Troco para quanto?</label>
     <div style="display: flex; align-items: center; gap: 5px;">
-        <span style="color: #777;">R$</span>
-        <input type="number" id="troco-valor" placeholder="Ex: 50.00" style="width: 100%; border: none; outline: none; font-family: inherit;">
+        <span style="color: #777; font-weight: bold;">R$</span>
+        <!-- Mudado para type="text" e adicionado o oninput -->
+        <input type="text" id="troco-valor" placeholder="0,00" oninput="maskMoney(this)" style="width: 100%; border: none; outline: none; font-family: inherit;">
     </div>
 </div>
                 
