@@ -6,32 +6,70 @@
     <title>Painel Administrativo - Casa da Lasanha</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <!-- Importante para o Recorte -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.min.js"></script>
     <style>
-        .admin-container { padding: 20px; max-width: 800px; margin: 0 auto; background: #fff; min-height: 100vh; }
-        .form-group { margin-bottom: 15px; display: flex; flex-direction: column; }
-        .form-group label { font-weight: bold; margin-bottom: 5px; color: #333; }
-        .form-group input, .form-group select, .form-group textarea { padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
-        .btn-save { background: var(--accent); color: white; border: none; padding: 15px; border-radius: 5px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; }
-        .btn-logout { background: #ff6b6b; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; float: right; }
-        #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #333; z-index: 1000; display: flex; align-items: center; justify-content: center; color: white; }
-        .login-box { background: #fff; padding: 30px; border-radius: 10px; width: 90%; max-width: 400px; color: #333; text-align: center; }
-        .status-toggle { display: flex; align-items: center; justify-content: space-between; background: #eee; padding: 15px; border-radius: 8px; margin-bottom: 25px; }
+        :root {
+            --vinho: #5C1518;
+            --vinho-light: #7a1d21;
+            --accent: #5D7D2B;
+            --dark-bg: #121212;
+            --card-bg: #1e1e1e;
+        }
+
+        body { background-color: var(--dark-bg); color: #fff; font-family: 'Segoe UI', sans-serif; margin: 0; padding-bottom: 80px; }
+        .admin-container { padding: 20px; max-width: 900px; margin: 0 auto; }
         
-        /* Estilo para a área de recorte */
-        #crop-area { width: 100%; margin-top: 10px; min-height: 300px; background: #f0f0f0; border-radius: 5px; }
-        .promo-box { display: flex; align-items: center; gap: 10px; background: #fff9db; padding: 10px; border-radius: 5px; margin-top: 5px; }
+        /* Cards de Configuração */
+        .admin-card { background: var(--card-bg); border-radius: 12px; padding: 20px; margin-bottom: 20px; border: 1px solid #333; }
+        .form-group { margin-bottom: 15px; display: flex; flex-direction: column; }
+        .form-group label { font-size: 0.8rem; color: #aaa; margin-bottom: 5px; text-transform: uppercase; }
+        .form-group input, .form-group select, .form-group textarea { 
+            padding: 12px; border: 1px solid #333; border-radius: 8px; background: #000; color: #fff; 
+        }
+
+        /* Botão Flutuante Ver Layout */
+        .btn-view-site { 
+            position: fixed; bottom: 20px; right: 20px; background: var(--accent); color: white; 
+            padding: 15px 25px; border-radius: 50px; text-decoration: none; font-weight: bold; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5); z-index: 1000; display: flex; align-items: center; gap: 10px;
+        }
+
+        /* Sanfona / Gavetas */
+        .accordion { margin-bottom: 10px; border-radius: 8px; overflow: hidden; border: 1px solid #333; }
+        .accordion-header { 
+            background: #252525; padding: 15px; cursor: pointer; display: flex; 
+            justify-content: space-between; align-items: center; border-left: 4px solid var(--vinho);
+        }
+        .accordion-content { display: none; padding: 15px; background: #1a1a1a; border-top: 1px solid #333; }
+        .accordion.active .accordion-content { display: block; }
+        .accordion.active i.fa-chevron-down { transform: rotate(180deg); }
+
+        /* Estilo dos itens na lista */
+        .admin-item-card { 
+            display: flex; align-items: center; gap: 15px; background: #000; 
+            padding: 10px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #222;
+        }
+        .btn-action { padding: 8px; border-radius: 5px; border: none; cursor: pointer; color: white; font-size: 0.9rem; }
+        .btn-edit { background: #3498db; }
+        .btn-status { background: #f39c12; }
+        .btn-delete { background: #e74c3c; }
+
+        .btn-save { 
+            background: var(--vinho); color: white; border: none; padding: 15px; 
+            border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; 
+        }
+
+        #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 2000; display: flex; align-items: center; justify-content: center; }
+        #crop-area { width: 100%; margin-top: 10px; min-height: 350px; background: #000; border-radius: 8px; }
     </style>
 </head>
 <body>
 
     <div id="login-overlay">
-        <div class="login-box">
-            <img src="logocasalasanha.png" alt="Logo" style="width: 80px; margin-bottom: 15px;">
-            <h2>Acesso Restrito</h2>
-            <p style="margin-bottom: 20px; font-size: 0.9rem;">Entre com suas credenciais de Administrador</p>
+        <div class="login-box" style="background: var(--card-bg); padding: 40px; border-radius: 15px; text-align: center; border: 1px solid var(--vinho);">
+            <img src="logocasalasanha.jpg" alt="Logo" style="width: 80px; margin-bottom: 15px;">
+            <h2 style="color: #fff;">Acesso Restrito</h2>
             <div class="form-group">
                 <input type="email" id="admin-email" placeholder="E-mail">
             </div>
@@ -39,72 +77,97 @@
                 <input type="password" id="admin-password" placeholder="Senha">
             </div>
             <button class="btn-save" id="btn-login">Entrar no Painel</button>
-            <p style="margin-top: 15px;"><a href="index.html" style="color: #777; text-decoration: none;">Voltar ao site</a></p>
         </div>
     </div>
+
+    <a href="index.html" target="_blank" class="btn-view-site">
+        <i class="fa-solid fa-eye"></i> Ver como está ficando
+    </a>
 
     <div class="admin-container" id="admin-content" style="display: none;">
-        <button class="btn-logout" id="btn-logout">Sair</button>
-        <h1 style="margin-bottom: 20px;">Painel da Casa da Lasanha</h1>
+        <button onclick="location.reload()" style="float: right; background: #444; border: none; color: white; padding: 5px 15px; border-radius: 5px; cursor: pointer;">Sair</button>
+        <h1 style="color: var(--vinho-light);">Painel Casa da Lasanha</h1>
 
-        <div class="status-toggle">
-            <span><strong>Status da Loja:</strong></span>
-            <select id="store-status-select">
-                <option value="open">Aberta</option>
-                <option value="closed">Fechada</option>
-            </select>
+        <!-- SEÇÃO: STATUS E FRETE -->
+        <div class="admin-card">
+            <h3><i class="fa-solid fa-gear"></i> Configurações da Loja</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="form-group">
+                    <label>Status da Loja</label>
+                    <select id="store-status-select">
+                        <option value="open">Aberta (Aceitando Pedidos)</option>
+                        <option value="closed">Fechada (Apenas Consulta)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Entrega Grátis até (KM)</label>
+                    <input type="number" id="free-km" placeholder="Ex: 5">
+                </div>
+                <div class="form-group">
+                    <label>Valor por KM Adicional (R$)</label>
+                    <input type="text" id="km-value" placeholder="Ex: 2,00">
+                </div>
+                <div class="form-group">
+                    <label>Taxa Fixa / Mínima (R$)</label>
+                    <input type="text" id="fixed-delivery" placeholder="Ex: 5,00">
+                </div>
+            </div>
+            <button class="btn-save" id="btn-save-configs" style="background: var(--accent); font-size: 0.8rem; padding: 10px;">Salvar Configurações</button>
         </div>
 
-        <hr style="margin-bottom: 25px; border: 0; border-top: 1px solid #eee;">
-
-        <h3>Cadastrar Novo Item</h3>
-        <form id="product-form">
-            <div class="form-group">
-                <label>Nome do Prato</label>
-                <input type="text" id="p-name" placeholder="Ex: Lasanha Bolonhesa" required>
+        <!-- SEÇÃO: CADASTRO (GAVETA) -->
+        <div class="accordion" id="add-item-accordion">
+            <div class="accordion-header" onclick="this.parentElement.classList.toggle('active')">
+                <strong><i class="fa-solid fa-plus-circle"></i> CADASTRAR / EDITAR PRODUTO</strong>
+                <i class="fa-solid fa-chevron-down"></i>
             </div>
-            <div class="form-group">
-                <label>Descrição/Ingredientes</label>
-                <textarea id="p-desc" rows="2" placeholder="Ingredientes..."></textarea>
+            <div class="accordion-content">
+                <form id="product-form">
+                    <div class="form-group">
+                        <label>Nome do Prato</label>
+                        <input type="text" id="p-name" placeholder="Ex: Lasanha de Carne Especial" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Descrição</label>
+                        <textarea id="p-desc" rows="2" placeholder="Ingredientes e detalhes..."></textarea>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div class="form-group">
+                            <label>Preço Base (R$)</label>
+                            <input type="text" id="p-price" placeholder="0,00" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Categoria</label>
+                            <select id="p-category">
+                                <option value="Panquecas">Panquecas</option>
+                                <option value="Lasanhas">Lasanhas</option>
+                                <option value="Refrigerantes">Refrigerantes</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="promo-box" style="background: #222; padding: 10px; border-radius: 8px; border: 1px dashed var(--accent);">
+                        <input type="checkbox" id="p-onsale"> <strong>Colocar em Promoção?</strong>
+                        <input type="number" id="p-discount" placeholder="%" style="width: 60px; margin-left: 10px; background: #000; color: #fff; border: 1px solid #444;">
+                    </div>
+                    <div class="form-group" style="margin-top:15px;">
+                        <label>Foto do Prato</label>
+                        <input type="file" id="p-image-file" accept="image/*">
+                        <div id="crop-area"></div>
+                    </div>
+                    <button type="submit" class="btn-save" id="btn-submit-form">Salvar no Cardápio</button>
+                    <button type="button" id="btn-cancel-edit" style="display:none; background: #444; color: #fff; border: none; padding: 10px; width: 100%; border-radius: 8px; margin-top: 5px;">Cancelar Edição</button>
+                </form>
             </div>
-            
-            <div class="form-group">
-                <label>Preço Base (R$)</label>
-                <!-- Mudado para text para a máscara de 0,00 funcionar -->
-                <input type="text" id="p-price" placeholder="0,00" required>
-            </div>
+        </div>
 
-            <div class="form-group">
-                <label>Categoria</label>
-                <select id="p-category">
-                    <option value="Promoções">Promoções</option>
-                    <option value="Panquecas">Panquecas</option>
-                    <option value="Lasanhas">Lasanhas</option>
-                    <option value="Refrigerantes">Refrigerantes</option>
-                </select>
-            </div>
+        <h3 style="margin-top: 30px; color: #aaa; font-size: 0.9rem; text-transform: uppercase;">Itens no Cardápio (Gavetas por Categoria)</h3>
+        
+        <div id="category-groups">
+            <!-- As gavetas de Panquecas, Lasanhas e Refrigerantes aparecerão aqui via JS -->
+        </div>
 
-            <!-- Novos campos de Promoção -->
-            <div class="promo-box">
-                <input type="checkbox" id="p-onsale"> 
-                <label for="p-onsale" style="margin:0">Este item está em Promoção?</label>
-                <input type="number" id="p-discount" placeholder="%" style="width: 60px; padding: 5px;">
-            </div>
-
-            <div class="form-group" style="margin-top:15px;">
-                <label>Foto do Prato (Será recortada 500x500)</label>
-                <input type="file" id="p-image-file" accept="image/*" required>
-                <!-- Área onde o Croppie vai aparecer -->
-                <div id="crop-area"></div>
-            </div>
-
-            <button type="submit" class="btn-save">Salvar no Cardápio</button>
-        </form>
-
-        <h3 style="margin-top: 40px;">Gerenciar Cardápio</h3>
-        <div id="admin-product-list"></div>
     </div>
 
-  <script type="module" src="admin-script.js"></script>
+    <script type="module" src="admin-script.js"></script>
 </body>
 </html>
