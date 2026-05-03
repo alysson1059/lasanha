@@ -1,7 +1,8 @@
 :root {
-    --vinho-logo: #5C1518; /* Tom de vinho aproximado da sua logo */
+    --vinho-logo: #5C1518;
     --accent: #5D7D2B;
     --white: #ffffff;
+    --bg: #f8f9fa; /* Definição de uma cor de fundo clara para o app */
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; font-family: sans-serif; }
@@ -11,25 +12,23 @@ body { background: var(--bg); padding-bottom: 80px; }
 /* Banners */
 .banner-container {
     width: 100%;
-    height: auto; /* Deixa a altura fluir */
-    aspect-ratio: 1942 / 809; /* Força o container a ter a mesma proporção da sua imagem */
+    height: auto; 
+    aspect-ratio: 1920 / 292; /* Atualizado para suas novas medidas de Desktop */
     position: relative;
     background: #000;
 }
-
 .banner-img {
     width: 100%;
     height: 100%;
     object-fit: cover; /* Agora ele cobrirá um espaço que tem o tamanho exato dela */
 }
 
-/* Responsividade do Banner para Desktop */
+/* Responsividade do Banner para Mobile */
 @media (max-width: 767px) {
     .banner-container {
-        aspect-ratio: 1774 / 887; /* Proporção do seu banner mobile */
+        aspect-ratio: 800 / 396; /* Atualizado para suas novas medidas de Mobile */
     }
 }
-
 .overlay {
     position: absolute; top: 0; width: 100%; height: 100%;
     background: linear-gradient(transparent, rgba(0,0,0,0.8));
@@ -67,6 +66,16 @@ body { background: var(--bg); padding-bottom: 80px; }
     object-fit: cover;     /* Corta as bordas da imagem para preencher o quadrado sem distorcer */
     object-position: center; /* Garante que o foco do corte seja o centro da foto */
     display: block;
+}
+
+/* Garante que todas as imagens de produtos na grid sigam o padrão quadrado */
+.products-grid .product-card img {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+    border-radius: 10px 10px 0 0; /* Arredonda o topo para combinar com o card */
 }
 
 .text-info { margin-left: 15px; margin-bottom: 10px; }
@@ -135,10 +144,10 @@ body { background: var(--bg); padding-bottom: 80px; }
 .nav-item.active { color: #000; }
 .cart-badge {
     position: absolute; top: -8px; right: -5px;
-    background: var(--primary); color: #fff;
+    background: var(--vinho-logo); /* Usando a cor da sua marca */
+    color: #fff;
     border-radius: 50%; padding: 2px 6px; font-size: 0.7rem;
 }
-
 
 #btn-carrinho-flutuante {
     position: fixed;
