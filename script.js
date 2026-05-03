@@ -67,7 +67,8 @@ function loadProducts(categoryFilter = "Promoções") {
                 hasItems = true;
                 const productCard = `
                     <div class="product-card" style="background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                        <img src="${product.image || 'placeholder.jpg'}" style="width: 100%; height: 180px; object-fit: cover;">
+                        // Localize esta linha no seu loadProducts:
+                        <img src="${product.image || 'placeholder.jpg'}" class="product-image-square">
                         <div style="padding: 15px;">
                             <h3 style="font-size: 1.1rem; color: #333;">${product.name}</h3>
                             <p style="font-size: 0.85rem; color: #777; margin: 5px 0;">${product.description}</p>
