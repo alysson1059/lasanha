@@ -64,22 +64,55 @@
 
 <!-- ABA 3: PERFIL (Dados do Cliente) -->
 <section id="aba-perfil" class="secao-aba" style="display: none;">
-    <div style="padding: 20px;">
-        <h2 style="color: var(--vinho-logo); margin-bottom: 20px;">Meu Perfil</h2>
-        <form id="perfil-form" class="admin-card">
-            <div class="form-group">
-                <label>Nome Completo</label>
-                <input type="text" id="user-name" placeholder="Como quer ser chamado?">
+    <div class="perfil-container" style="padding: 20px; max-width: 500px; margin: 0 auto;">
+        <div style="text-align: center; margin-bottom: 25px;">
+            <div style="background: var(--vinho-logo); width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px;">
+                <i class="fa-solid fa-user" style="color: white; font-size: 2rem;"></i>
             </div>
+            <h2 style="color: var(--vinho-logo); margin: 0;">Meus Dados</h2>
+            <p style="font-size: 0.9rem; color: #666;">Mantenha seus dados atualizados para entregas rápidas</p>
+        </div>
+
+        <form id="perfil-form" class="admin-card" style="background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
             <div class="form-group">
-                <label>WhatsApp (Somente números)</label>
-                <input type="number" id="user-phone" placeholder="Ex: 79999999999">
+                <label><i class="fa-solid fa-signature"></i> Nome Completo</label>
+                <input type="text" id="user-name" placeholder="Ex: João Silva" required>
             </div>
+
             <div class="form-group">
-                <label>Endereço de Entrega</label>
-                <textarea id="user-address" rows="3" placeholder="Rua, número, bairro e referência"></textarea>
+                <label><i class="fa-brands fa-whatsapp"></i> WhatsApp</label>
+                <input type="number" id="user-phone" placeholder="79999999999" required>
             </div>
-            <button type="submit" class="btn-save">Salvar Dados</button>
+
+            <div style="margin-top: 20px; border-top: 1px dashed #ddd; padding-top: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <label style="margin: 0; font-weight: bold; color: var(--vinho-logo);">Endereço de Entrega</label>
+                    <button type="button" onclick="getUserLocation()" style="background: var(--accent); color: white; border: none; padding: 5px 12px; border-radius: 50px; font-size: 0.75rem; cursor: pointer;">
+                        <i class="fa-solid fa-location-crosshairs"></i> Usar GPS
+                    </button>
+                </div>
+
+                <div class="form-group">
+                    <input type="text" id="user-street" placeholder="Rua / Avenida" required>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div class="form-group">
+                        <input type="text" id="user-number" placeholder="Nº ou S/N" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="text" id="user-cep" placeholder="CEP (Opcional)">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <input type="text" id="user-ref" placeholder="Ponto de Referência (Ex: Próximo ao mercado)">
+                </div>
+            </div>
+
+            <button type="submit" class="btn-save" style="margin-top: 10px; background: var(--vinho-logo);">
+                <i class="fa-solid fa-check"></i> Salvar Perfil
+            </button>
         </form>
     </div>
 </section>
