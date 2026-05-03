@@ -196,3 +196,23 @@ document.addEventListener('DOMContentLoaded', () => {
     updateCartUI();            // Atualiza o carrinho (se tiver algo salvo)
     setupCategoryButtons();    // Ativa os cliques nos botões
 });
+
+// FUNÇÃO PARA TROCAR AS ABAS
+window.trocarAba = (idAba, elemento) => {
+    // 1. Esconde todas as seções
+    document.querySelectorAll('.secao-aba').forEach(aba => {
+        aba.style.display = 'none';
+    });
+
+    // 2. Mostra a aba clicada
+    document.getElementById(idAba).style.display = 'block';
+
+    // 3. Muda a cor do ícone no menu inferior
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active');
+    });
+    elemento.classList.add('active');
+
+    // 4. Se mudar de aba, sobe para o topo da página
+    window.scrollTo(0, 0);
+};
