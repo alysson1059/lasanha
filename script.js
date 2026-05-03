@@ -233,46 +233,35 @@ if (checkoutBtn) {
         // Captura a forma de pagamento selecionada
         const formaPagamento = document.getElementById('payment-method').value;
         const trocoPara = document.getElementById('troco-valor').value;
-      
 
+        // 1. Validação de perfil (campos obrigatórios)
         if (!perfil || !perfil.telefone || !perfil.rua || !perfil.numero) {
             alert("Por favor, preencha seu endereço e telefone no Perfil antes de pedir.");
             trocarAba('aba-perfil', document.querySelectorAll('.nav-item')[2]); 
             return;
         }
 
+        // 2. Validação de carrinho vazio
         if (cart.length === 0) return alert("Seu carrinho está vazio!");
 
-        const enderecoCompleto = `${perfil.rua}, Nº ${perfil.numero}${perfil.cep ? ', CEP: ' + perfil.cep : ''} (${perfil.referencia || 'Sem ref.'})`;
-
-        let message = `*Pedido Casa da Lasanha*\n\n`;
-        message += `*Cliente:* ${perfil.nome}\n`;
-        message += `*Telefone:* ${perfil.telefone}\n`;
-        message += `*Endereço:* ${enderecoCompleto}\n`;
-        
-        // ADICIONE ESTA LINHA NA MENSAGEM:
-       message += `*Pagamento:* ${formaPagamento}\n`;
-        if (formaPagamento === 'Dinheiro' && trocoPara) {
-            message += `*Troco para:* R$ ${parseFloat(trocoPara).toFixed(2)}\n`;
-        }
-        message += `\n`;
-        
-        message += `*ITENS DO PEDIDO:*\n`;
-        
-      let total = 0;
+        // 3. Cálculo do valor total (precisa ser feito antes da validação do troco)
+        let total = 0;
         cart.forEach(item => {
             total += item.price * item.quantity;
         });
 
-        // 2. SEGUNDO: Validar o troco (se for dinheiro)
+        // 4. Validação do troco (se for dinheiro)
         if (formaPagamento === 'Dinheiro' && trocoPara) {
-            if (parseFloat(trocoPara) <= total) {
-                alert(`O valor para troco (R$ ${parseFloat(trocoPara).toFixed(2)}) deve ser maior que o total do pedido (R$ ${total.toFixed(2)})!`);
-                return; // Para o código aqui e não abre o WhatsApp
+            const valorTrocoNum = parseFloat(trocoPara);
+            if (valorTrocoNum <= total) {
+                alert(`O valor para troco (R$ ${valorTrocoNum.toFixed(2)}) deve ser maior que o total do pedido (R$ ${total.toFixed(2)})!`);
+                return; // Interrompe a execução aqui
             }
         }
 
-        // 3. TERCEIRO: Montar a mensagem agora que já temos o total calculado
+        // 5. Montagem da mensagem final (declarada apenas uma vez com 'let')
+        const enderecoCompleto = `${perfil.rua}, Nº ${perfil.numero}${perfil.cep ? ', CEP: ' + perfil.cep : ''} (${perfil.referencia || 'Sem ref.'})`;
+
         let message = `*Pedido Casa da Lasanha*\n\n`;
         message += `*Cliente:* ${perfil.nome}\n`;
         message += `*Telefone:* ${perfil.telefone}\n`;
@@ -291,10 +280,11 @@ if (checkoutBtn) {
 
         message += `\n*TOTAL: R$ ${total.toFixed(2)}*`;
 
-        // 4. QUARTO: Abrir o WhatsApp e limpar o carrinho
+        // 6. Abrir o WhatsApp e limpar o carrinho
         const phoneLoja = "5579996737203"; 
         window.open(`https://wa.me/${phoneLoja}?text=${encodeURIComponent(message)}`, '_blank');
 
+        // Resetar interface e carrinho
         cart = [];
         updateCartUI();
         toggleCart();
