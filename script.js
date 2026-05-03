@@ -232,6 +232,8 @@ if (checkoutBtn) {
         
         // Captura a forma de pagamento selecionada
         const formaPagamento = document.getElementById('payment-method').value;
+        const trocoPara = document.getElementById('troco-valor').value;
+      
 
         if (!perfil || !perfil.telefone || !perfil.rua || !perfil.numero) {
             alert("Por favor, preencha seu endereço e telefone no Perfil antes de pedir.");
@@ -249,7 +251,11 @@ if (checkoutBtn) {
         message += `*Endereço:* ${enderecoCompleto}\n`;
         
         // ADICIONE ESTA LINHA NA MENSAGEM:
-        message += `*Pagamento:* ${formaPagamento}\n\n`;
+       message += `*Pagamento:* ${formaPagamento}\n`;
+        if (formaPagamento === 'Dinheiro' && trocoPara) {
+            message += `*Troco para:* R$ ${parseFloat(trocoPara).toFixed(2)}\n`;
+        }
+        message += `\n`;
         
         message += `*ITENS DO PEDIDO:*\n`;
         
