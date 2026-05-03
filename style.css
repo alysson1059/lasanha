@@ -1,0 +1,96 @@
+/* Configurações Gerais */
+:root {
+    --primary-color: #5D7D2B; /* Verde do botão do print */
+    --bg-color: #f8f9fa;
+    --text-dark: #333;
+    --text-light: #777;
+    --white: #ffffff;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+
+body { background-color: var(--bg-color); padding-bottom: 80px; }
+
+/* Header e Banner */
+.main-header { position: relative; background: var(--white); }
+
+.banner-container { width: 100%; height: 200px; overflow: hidden; position: relative; }
+
+.banner-img { width: 100%; height: 100%; object-fit: cover; }
+
+.overlay { 
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+    background: linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.7)); 
+}
+
+.profile-info { 
+    display: flex; align-items: center; padding: 15px; margin-top: -40px; 
+    position: relative; z-index: 10; flex-wrap: wrap;
+}
+
+.logo-box { 
+    width: 90px; height: 90px; background: #333; border-radius: 8px; 
+    padding: 5px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); 
+}
+
+.logo-box img { width: 100%; height: 100%; object-fit: contain; }
+
+.text-info { margin-left: 15px; flex: 1; }
+.text-info h1 { font-size: 1.4rem; color: var(--text-dark); }
+.text-info p { font-size: 0.9rem; color: var(--text-light); }
+
+.status { font-size: 0.8rem; font-weight: bold; }
+.status.open { color: var(--primary-color); }
+
+.btn-adm {
+    padding: 8px 12px; background: #333; color: white; border-radius: 5px;
+    text-decoration: none; font-size: 0.7rem; margin-top: 10px;
+}
+
+/* Categorias */
+.categories { 
+    display: flex; overflow-x: auto; padding: 15px; gap: 10px; 
+    background: var(--white); border-bottom: 1px solid #eee; sticky; top: 0; z-index: 20;
+}
+
+.cat-btn { 
+    padding: 8px 20px; border-radius: 5px; border: none; 
+    background: #e9ecef; color: var(--text-dark); font-weight: 600; white-space: nowrap;
+}
+
+.cat-btn.active { background: var(--text-dark); color: var(--white); }
+
+/* Menu de Produtos */
+.menu-container { padding: 20px; max-width: 1200px; margin: 0 auto; }
+.section-title { margin-bottom: 20px; font-size: 1.5rem; color: var(--text-dark); }
+
+.products-grid { 
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; 
+}
+
+/* Barra Inferior */
+.bottom-nav { 
+    position: fixed; bottom: 0; width: 100%; background: var(--white); 
+    display: flex; justify-content: space-around; padding: 10px 0;
+    border-top: 1px solid #eee; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); z-index: 100;
+}
+
+.nav-item { display: flex; flex-direction: column; align-items: center; color: var(--text-light); font-size: 0.7rem; position: relative; }
+.nav-item.active { color: var(--text-dark); }
+.nav-item i { font-size: 1.2rem; margin-bottom: 3px; }
+
+.cart-badge {
+    position: absolute; top: -5px; right: 0; background: red; color: white;
+    border-radius: 50%; padding: 2px 6px; font-size: 0.6rem;
+}
+
+/* Modal */
+.modal { display: none; position: fixed; z-index: 200; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
+.modal-content { background: white; margin: 15% auto; padding: 20px; width: 90%; max-width: 500px; border-radius: 10px; }
+.close { float: right; font-size: 28px; cursor: pointer; }
+
+/* Responsividade Desktop */
+@media (min-width: 768px) {
+    .banner-container { height: 350px; }
+    .profile-info { padding: 20px 50px; }
+}

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Casa da Lasanha - Sabores Clássicos</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+
+    <header class="main-header">
+        <div class="banner-container">
+            <picture>
+                <source media="(max-width: 600px)" srcset="88508.jpg"> <img src="88508.jpg" alt="Banner Casa da Lasanha" class="banner-img">
+            </picture>
+            <div class="overlay"></div>
+        </div>
+        
+        <div class="profile-info">
+            <div class="logo-box">
+                <img src="88510.png" alt="Logo Casa da Lasanha">
+            </div>
+            <div class="text-info">
+                <h1>Casa da Lasanha</h1>
+                <p>Sabores clássicos de alta gastronomia</p>
+                <span class="status open"><i class="fa-solid fa-clock"></i> Aberto agora</span>
+            </div>
+            <a href="admin.html" class="btn-adm"><i class="fa-solid fa-lock"></i> Painel ADM</a>
+        </div>
+    </header>
+
+    <nav class="categories">
+        <button class="cat-btn active">Promoções</button>
+        <button class="cat-btn">Panquecas</button>
+        <button class="cat-btn">Lasanhas</button>
+        <button class="cat-btn">Refrigerantes</button>
+    </nav>
+
+    <main class="menu-container">
+        <h2 class="section-title">Promoções</h2>
+        <div class="products-grid" id="products-list">
+            <div class="product-card-placeholder">
+                <p>Carregando cardápio...</p>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bottom-nav">
+        <div class="nav-item active">
+            <i class="fa-solid fa-utensils"></i>
+            <span>Cardápio</span>
+        </div>
+        <div class="nav-item" onclick="toggleCart()">
+            <div class="cart-badge">0</div>
+            <i class="fa-solid fa-cart-shopping"></i>
+            <span>Pedidos</span>
+        </div>
+        <div class="nav-item">
+            <i class="fa-solid fa-user"></i>
+            <span>Perfil</span>
+        </div>
+    </footer>
+
+    <div id="cart-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="toggleCart()">&times;</span>
+            <h2>Meu Pedido</h2>
+            <div id="cart-items">
+                <p>Seu carrinho está vazio.</p>
+            </div>
+            <div class="cart-total">
+                <span>Total:</span>
+                <span id="total-price">R$ 0,00</span>
+            </div>
+            <button class="btn-checkout">Finalizar no WhatsApp</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
