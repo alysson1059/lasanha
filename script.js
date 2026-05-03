@@ -125,8 +125,25 @@ window.addToCart = (id, name, price) => {
     } else {
         cart.push({ id, name, price, quantity: 1 });
     }
+    
+    // FEEDBACK VISUAL:
+    mostrarAviso(`${name} adicionado!`);
+    
     updateCartUI();
 };
+
+function mostrarAviso(texto) {
+    const aviso = document.createElement('div');
+    aviso.innerText = texto;
+    aviso.style = `
+        position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+        background: var(--accent); color: white; padding: 10px 20px;
+        border-radius: 50px; z-index: 3000; font-weight: bold;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2); animation: fadeInOut 2s forwards;
+    `;
+    document.body.appendChild(aviso);
+    setTimeout(() => aviso.remove(), 2000);
+}
 
 function updateCartUI() {
     localStorage.setItem('casaLasanhaCart', JSON.stringify(cart));
@@ -158,24 +175,54 @@ function renderCartItems() {
     if (!cartContainer || !totalPriceElement) return;
 
     if (cart.length === 0) {
-        cartContainer.innerHTML = '<p>Seu carrinho está vazio.</p>';
+        cartContainer.innerHTML = `
+            <div style="text-align:center; margin-top:30px; color:#aaa;">
+                <i class="fa-solid fa-cart-shopping" style="font-size:3rem; opacity:0.2;"></i>
+                <p>Sua sacola está vazia</p>
+            </div>`;
         totalPriceElement.innerText = 'R$ 0,00';
         return;
     }
 
     let total = 0;
-    cartContainer.innerHTML = cart.map(item => {
+    cartContainer.innerHTML = cart.map((item, index) => {
         total += item.price * item.quantity;
         return `
-            <div style="display: flex; justify-content: space-between; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px;">
-                <span>${item.quantity}x ${item.name}</span>
-                <span>R$ ${(item.price * item.quantity).toFixed(2)}</span>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #eee;">
+                <div style="flex: 1;">
+                    <strong style="display:block; color:#333;">${item.name}</strong>
+                    <small style="color:var(--vinho-logo);">R$ ${(item.price * item.quantity).toFixed(2)}</small>
+                </div>
+                
+                <div style="display: flex; align-items: center; gap: 12px; background: #f8f9fa; padding: 5px 10px; border-radius: 50px;">
+                    <button onclick="changeQuantity(${index}, -1)" style="background:none; border:none; color:var(--vinho-logo); cursor:pointer; font-size:1.1rem;"><i class="fa-solid fa-circle-minus"></i></button>
+                    <span style="font-weight:bold; min-width:20px; text-align:center;">${item.quantity}</span>
+                    <button onclick="changeQuantity(${index}, 1)" style="background:none; border:none; color:var(--accent); cursor:pointer; font-size:1.1rem;"><i class="fa-solid fa-circle-plus"></i></button>
+                </div>
+
+                <button onclick="removeItem(${index})" style="background:none; border:none; color:#e74c3c; margin-left:10px; cursor:pointer;">
+                    <i class="fa-solid fa-trash-can"></i>
+                </button>
             </div>
         `;
     }).join('');
     totalPriceElement.innerText = `R$ ${total.toFixed(2)}`;
 }
 
+// Funções auxiliares para os botões da sacola
+window.changeQuantity = (index, delta) => {
+    cart[index].quantity += delta;
+    if (cart[index].quantity <= 0) {
+        removeItem(index);
+    } else {
+        updateCartUI();
+    }
+};
+
+window.removeItem = (index) => {
+    cart.splice(index, 1);
+    updateCartUI();
+};
 // 3. FINALIZAR NO WHATSAPP (COM CORREÇÃO PARA O ERRO NULL)
 const checkoutBtn = document.querySelector('.btn-checkout');
 if (checkoutBtn) {
