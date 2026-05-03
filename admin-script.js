@@ -25,29 +25,66 @@ if (loginBtn) {
             .then(() => { 
                 document.getElementById('login-overlay').style.display = 'none'; 
                 document.getElementById('admin-content').style.display = 'block'; 
+
+                loadStoreConfigs();
             })
             .catch(err => alert("Erro ao acessar: " + err.message));
     };
 }
 
 // --- 2. CONFIGURAÇÕES DE FRETE E STATUS DA LOJA ---
-const btnSaveConfig = document.getElementById('btn-save-configs');
-if (btnSaveConfig) {
-    btnSaveConfig.addEventListener('click', async () => {
-        const config = {
-            status: document.getElementById('store-status-select').value,
-            freeKm: Number(document.getElementById('free-km').value),
-            kmValue: document.getElementById('km-value').value,
-            fixedValue: document.getElementById('fixed-delivery').value
-        };
-        try {
-            await setDoc(doc(db, "configuracoes", "loja"), config);
-            alert("Configurações da Loja atualizadas!");
-        } catch (error) {
-            alert("Erro ao salvar configs: " + error.message);
+window.getCurrentLocation = () => {
+    if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(async (position) => {
+            const { latitude, longitude } = position.coords;
+            // Aqui você pode salvar as coordenadas ou usar uma API para converter em texto
+            document.getElementById('store-address').value = `${latitude}, ${longitude}`;
+            alert("Localização capturada com sucesso!");
+        }, (error) => {
+            alert("Erro ao pegar localização: " + error.message);
+        });
+    } else {
+        alert("Geolocalização não suportada pelo navegador.");
+    }
+};
+
+// --- CARREGAR CONFIGURAÇÕES AO INICIAR ---
+async function loadStoreConfigs() {
+    try {
+        const docRef = doc(db, "configuracoes", "loja");
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            document.getElementById('store-status-select').value = data.status || 'closed';
+            document.getElementById('store-address').value = data.address || '';
+            document.getElementById('free-km').value = data.freeKm || '';
+            document.getElementById('km-value').value = data.kmValue || '';
+            document.getElementById('fixed-delivery').value = data.fixedValue || '';
+            console.log("Configurações carregadas!");
         }
-    });
+    } catch (error) {
+        console.error("Erro ao carregar configurações:", error);
+    }
 }
+
+// --- SALVAR CONFIGURAÇÕES ---
+document.getElementById('btn-save-configs').onclick = async () => {
+    const config = {
+        status: document.getElementById('store-status-select').value,
+        address: document.getElementById('store-address').value,
+        freeKm: Number(document.getElementById('free-km').value),
+        kmValue: document.getElementById('km-value').value,
+        fixedValue: document.getElementById('fixed-delivery').value
+    };
+
+    try {
+        await setDoc(doc(db, "configuracoes", "loja"), config);
+        alert("Configurações da Casa da Lasanha salvas com sucesso!");
+    } catch (error) {
+        alert("Erro ao salvar: " + error.message);
+    }
+};
 
 // --- 3. MÁSCARAS E RECORTE (Mantendo sua lógica) ---
 const priceInput = document.getElementById('p-price');
@@ -177,3 +214,5 @@ window.toggleStatus = async (id, current) => {
 window.deleteItem = async (id) => {
     if(confirm("Excluir permanentemente?")) await deleteDoc(doc(db, "produtos", id));
 };
+
+loadStoreConfigs();
