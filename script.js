@@ -490,3 +490,19 @@ document.addEventListener('change', (e) => {
     }
 });
 
+window.maskMoney = (input) => {
+    let value = input.value.replace(/\D/g, ""); // Remove tudo que não é número
+    
+    // Converte para decimal (ex: 500 vira 5.00)
+    value = (value / 100).toFixed(2) + "";
+    
+    // Troca o ponto por vírgula para o padrão brasileiro
+    value = value.replace(".", ",");
+    
+    // Adiciona separador de milhar se necessário
+    value = value.replace(/(\d)(\d{3})(\d{3}),/g, "$1.$2.$3,");
+    value = value.replace(/(\d)(\d{3}),/g, "$1.$2,");
+    
+    input.value = value;
+};
+
