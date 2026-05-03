@@ -455,3 +455,16 @@ window.maskPhone = (input) => {
     
     input.value = value;
 };
+// Monitora a mudança na forma de pagamento
+document.addEventListener('change', (e) => {
+    if (e.target.id === 'payment-method') {
+        const trocoContainer = document.getElementById('troco-container');
+        if (e.target.value === 'Dinheiro') {
+            trocoContainer.style.display = 'block';
+        } else {
+            trocoContainer.style.display = 'none';
+            document.getElementById('troco-valor').value = ''; // Limpa o valor se mudar de ideia
+        }
+    }
+});
+
