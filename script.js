@@ -76,17 +76,22 @@ function loadProducts(categoryFilter = "Promoções") {
 }
 
 // 2. LOGICA DOS BOTÕES DE CATEGORIA
-document.querySelectorAll('.cat-btn').forEach(button => {
-    button.addEventListener('click', (e) => {
-        // Remove 'active' de todos e coloca no clicado
-        document.querySelectorAll('.cat-btn').forEach(btn => btn.classList.remove('active'));
-        e.target.classList.add('active');
-        
-        // Recarrega os produtos filtrando pela categoria do botão
-        const selectedCat = e.target.innerText;
-        loadProducts(selectedCat);
+// Crie esta função para configurar os cliques
+function setupCategoryButtons() {
+    const buttons = document.querySelectorAll('.cat-btn');
+    
+    buttons.forEach(button => {
+        button.addEventListener('click', (e) => {
+            // 1. Muda a aparência (cor do botão)
+            document.querySelectorAll('.cat-btn').forEach(btn => btn.classList.remove('active'));
+            e.currentTarget.classList.add('active');
+            
+            // 2. Pega o texto do botão (ex: "Lasanhas") e filtra
+            const selectedCat = e.currentTarget.innerText;
+            loadProducts(selectedCat);
+        });
     });
-});
+}
 // 2. LÓGICA DO CARRINHO
 window.addToCart = (id, name, price) => {
     const itemIndex = cart.findIndex(item => item.id === id);
@@ -161,5 +166,8 @@ window.toggleCart = () => {
 };
 
 // Inicializar tudo
-loadProducts();
-updateCartUI();
+document.addEventListener('DOMContentLoaded', () => {
+    loadProducts("Promoções"); // Inicia mostrando as promoções
+    updateCartUI();            // Atualiza o carrinho (se tiver algo salvo)
+    setupCategoryButtons();    // Ativa os cliques nos botões
+});
