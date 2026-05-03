@@ -9,13 +9,37 @@ const firebaseConfig = {
 };
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, collection, onSnapshot, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 let cart = JSON.parse(localStorage.getItem('casaLasanhaCart')) || [];
 let currentCategory = "Promoções";
+
+function monitorStoreStatus() {
+    const statusText = document.getElementById('store-status'); // Verifique se o ID no HTML é este
+    
+    if (!statusText) return;
+
+    // Escuta em tempo real o documento de configurações que você criou
+    onSnapshot(doc(db, "configuracoes", "loja"), (docSnap) => {
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            
+            if (data.status === "open") {
+                statusText.innerHTML = '<i class="fa-solid fa-circle" style="color: #82c91e; font-size: 0.7rem;"></i> Aberto Agora';
+                statusText.className = "status open";
+            } else {
+                statusText.innerHTML = '<i class="fa-solid fa-circle" style="color: #ff6b6b; font-size: 0.7rem;"></i> Fechado no Momento';
+                statusText.className = "status closed";
+            }
+        } else {
+            // Caso o documento ainda não exista no Firebase
+            statusText.innerText = "Status Indisponível";
+        }
+    });
+}
 
 // 1. ESCUTAR PRODUTOS EM TEMPO REAL
 function loadProducts(categoryFilter = "Promoções") {
@@ -48,7 +72,7 @@ function loadProducts(categoryFilter = "Promoções") {
                             <p style="font-size: 0.85rem; color: #777; margin: 5px 0;">${product.description}</p>
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
                                 <div>
-                                    ${product.onSale ? `<small style="text-decoration:line-through; color:red">R$ ${(product.price / (1 - (product.discount/100))).toFixed(2)}</small><br>` : ''}
+                                   ${product.onSale ? `<small style="text-decoration:line-through; color:red">R$ ${(Number(product.price) / (1 - (Number(product.discount)/100))).toFixed(2)}</small><br>` : ''}
                                     <span style="font-weight: bold; color: var(--vinho-logo);">R$ ${parseFloat(product.price).toFixed(2)}</span>
                                 </div>
                                 <button onclick="addToCart('${id}', '${product.name}', ${product.price})" 
@@ -167,6 +191,7 @@ window.toggleCart = () => {
 
 // Inicializar tudo
 document.addEventListener('DOMContentLoaded', () => {
+    monitorStoreStatus();
     loadProducts("Promoções"); // Inicia mostrando as promoções
     updateCartUI();            // Atualiza o carrinho (se tiver algo salvo)
     setupCategoryButtons();    // Ativa os cliques nos botões
