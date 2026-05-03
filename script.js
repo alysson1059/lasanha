@@ -130,11 +130,25 @@ window.addToCart = (id, name, price) => {
 
 function updateCartUI() {
     localStorage.setItem('casaLasanhaCart', JSON.stringify(cart));
+    
+    const btnFlutuante = document.getElementById('btn-carrinho-flutuante');
     const countElement = document.getElementById('cart-count');
+    
+    const totalItens = cart.reduce((total, item) => total + item.quantity, 0);
+
     if (countElement) {
-        const count = cart.reduce((total, item) => total + item.quantity, 0);
-        countElement.innerText = count;
+        countElement.innerText = totalItens;
     }
+
+    // MOSTRAR OU ESCONDER O BOTÃO FLUTUANTE
+    if (btnFlutuante) {
+        if (totalItens > 0) {
+            btnFlutuante.style.display = 'flex'; // Aparece se tiver algo
+        } else {
+            btnFlutuante.style.display = 'none'; // Some se estiver vazio
+        }
+    }
+    
     renderCartItems();
 }
 
