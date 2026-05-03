@@ -12,19 +12,23 @@
     <header class="main-header">
         <div class="banner-container">
             <picture>
-                <source media="(max-width: 600px)" srcset="88508.jpg"> <img src="88508.jpg" alt="Banner Casa da Lasanha" class="banner-img">
+                <!-- Se a tela for menor que 768px, usa o Banner Mobile -->
+                <source media="(max-width: 767px)" srcset="bannermobile.jpg">
+                <!-- Se for maior, usa o Banner Desktop -->
+                <img src="bannerdesktop.jpg" alt="Banner Casa da Lasanha" class="banner-img">
             </picture>
             <div class="overlay"></div>
         </div>
         
         <div class="profile-info">
             <div class="logo-box">
-                <img src="88510.png" alt="Logo Casa da Lasanha">
+                <!-- Usando sua logo oficial -->
+                <img src="logocasalasanha.png" alt="Logo Casa da Lasanha">
             </div>
             <div class="text-info">
                 <h1>Casa da Lasanha</h1>
                 <p>Sabores clássicos de alta gastronomia</p>
-                <span class="status open"><i class="fa-solid fa-clock"></i> Aberto agora</span>
+                <span id="store-status" class="status"><i class="fa-solid fa-clock"></i> Carregando...</span>
             </div>
             <a href="admin.html" class="btn-adm"><i class="fa-solid fa-lock"></i> Painel ADM</a>
         </div>
@@ -38,11 +42,8 @@
     </nav>
 
     <main class="menu-container">
-        <h2 class="section-title">Promoções</h2>
         <div class="products-grid" id="products-list">
-            <div class="product-card-placeholder">
-                <p>Carregando cardápio...</p>
-            </div>
+            <!-- Os itens do Firebase aparecerão aqui -->
         </div>
     </main>
 
@@ -51,8 +52,8 @@
             <i class="fa-solid fa-utensils"></i>
             <span>Cardápio</span>
         </div>
-        <div class="nav-item" onclick="toggleCart()">
-            <div class="cart-badge">0</div>
+        <div class="nav-item" onclick="openCart()">
+            <div id="cart-count" class="cart-badge">0</div>
             <i class="fa-solid fa-cart-shopping"></i>
             <span>Pedidos</span>
         </div>
@@ -62,21 +63,7 @@
         </div>
     </footer>
 
-    <div id="cart-modal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="toggleCart()">&times;</span>
-            <h2>Meu Pedido</h2>
-            <div id="cart-items">
-                <p>Seu carrinho está vazio.</p>
-            </div>
-            <div class="cart-total">
-                <span>Total:</span>
-                <span id="total-price">R$ 0,00</span>
-            </div>
-            <button class="btn-checkout">Finalizar no WhatsApp</button>
-        </div>
-    </div>
-
+    <!-- Scripts do Firebase vão aqui depois -->
     <script src="script.js"></script>
 </body>
 </html>
