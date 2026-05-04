@@ -34,6 +34,34 @@ body { background: var(--bg); padding-bottom: 80px; }
     background: linear-gradient(transparent, rgba(0,0,0,0.8));
 }
 
+/* Garante que os grupos de formulário ocupem a largura total e não quebrem o layout */
+.form-group {
+    width: 100%;
+    margin-bottom: 15px;
+    display: flex;
+    flex-direction: column; /* Força label ficar acima do input */
+}
+
+.form-group input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 1rem; /* Tamanho de fonte ideal para mobile evitar zoom automático */
+}
+
+/* Ajuste para evitar que o grid de Numero/Referência quebre no mobile */
+@media (max-width: 480px) {
+    .perfil-container {
+        padding: 10px; /* Reduz o padding lateral em telas muito pequenas */
+    }
+    
+    /* Se você quiser que Numero e Referência também fiquem um abaixo do outro no mobile */
+    .perfil-container div[style*="display: grid"] {
+        grid-template-columns: 1fr !important;
+    }
+}
+
 /* Informações e Logo */
 .profile-info {
     display: flex; align-items: flex-end;
