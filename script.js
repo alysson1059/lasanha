@@ -442,3 +442,29 @@ window.maskMoney = (input) => {
     input.value = value;
 };
 
+// --- CARREGAR DADOS NO FORMULÁRIO ---
+function carregarDadosPerfil() {
+    const dados = JSON.parse(localStorage.getItem('perfilCasaLasanha'));
+    if (dados) {
+        // Verifica se os campos existem antes de preencher
+        const nameField = document.getElementById('user-name');
+        const phoneField = document.getElementById('user-phone');
+        const streetField = document.getElementById('user-street');
+        const numberField = document.getElementById('user-number');
+        const cepField = document.getElementById('user-cep');
+        const refField = document.getElementById('user-ref');
+
+        if (nameField) nameField.value = dados.nome || '';
+        if (phoneField) phoneField.value = dados.telefone || '';
+        if (streetField) streetField.value = dados.rua || '';
+        if (numberField) numberField.value = dados.numero || '';
+        if (cepField) cepField.value = dados.cep || '';
+        if (refField) refField.value = dados.referencia || '';
+        
+        // Se houver telefone, já carrega o histórico também
+        if (dados.telefone) {
+            carregarHistoricoPedidos(dados.telefone);
+        }
+    }
+}
+
