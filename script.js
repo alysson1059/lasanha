@@ -71,7 +71,7 @@ function loadProducts(categoryFilter = "Promoções") {
                         <img src="${product.image || 'placeholder.jpg'}" class="product-image-square">
                         <div style="padding: 15px;">
                             <h3 style="font-size: 1.1rem; color: #333;">${product.name}</h3>
-                            <p style="font-size: 0.85rem; color: #777; margin: 5px 0;">${product.description}</p>
+                          <p style="font-size: 0.85rem; color: #777; margin: 5px 0;">${product.description || 'Saborosa e feita com ingredientes selecionados.'}</p>
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
                                 <div>
                                    ${product.onSale ? `<small style="text-decoration:line-through; color:red">R$ ${(Number(product.price) / (1 - (Number(product.discount)/100))).toFixed(2)}</small><br>` : ''}
