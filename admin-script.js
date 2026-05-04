@@ -126,8 +126,9 @@ document.getElementById('product-form').onsubmit = async (e) => {
         imageBase64 = await cropper.result({ type: 'base64', size: { width: 500, height: 500 } });
     }
 
-    const product = {
+  const product = {
         name: document.getElementById('p-name').value,
+        description: document.getElementById('p-description').value, // ADICIONE ESTA LINHA
         category: document.getElementById('p-category').value,
         price: parseFloat(document.getElementById('p-price').value.replace(',', '.')),
         onSale: document.getElementById('p-onsale').checked,
@@ -177,6 +178,7 @@ onSnapshot(collection(db, "produtos"), (snapshot) => {
                         <img src="${item.image}" width="50" style="border-radius:5px">
                         <div style="flex:1">
                             <strong>${item.name}</strong><br>
+                            <small style="color: #666; display: block; margin-bottom: 4px;">${item.description || 'Sem descrição'}</small> <!-- ADICIONE ESTA LINHA -->
                             R$ ${item.price.toFixed(2)} | ${item.available ? '✅' : '❌'}
                         </div>
                         <div style="display:flex; gap:5px;">
@@ -197,6 +199,7 @@ window.editItem = async (id) => {
     const snap = await getDoc(doc(db, "produtos", id));
     const p = snap.data();
     document.getElementById('p-name').value = p.name;
+    document.getElementById('p-description').value = p.description || '';
     document.getElementById('p-category').value = p.category;
     document.getElementById('p-price').value = p.price.toFixed(2).replace('.', ',');
     document.getElementById('p-onsale').checked = p.onSale;
