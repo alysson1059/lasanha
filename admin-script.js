@@ -266,9 +266,9 @@ onSnapshot(collection(db, "pedidos"), (snapshot) => {
             <hr style="border:0; border-top:1px solid #eee; margin:10px 0;">
             <p style="font-size:0.9rem;">${pedido.resumoItens}</p>
             <p><strong>Total: R$ ${pedido.total.toFixed(2)}</strong></p>
-            <div id="acoes-${id}">
-                ${renderBotaoStatus(id, pedido.status)}
-            </div>
+           <div id="acoes-${id}">   
+    ${renderBotaoStatus(id, pedido.status, pedido.metodo)}
+</div>
         `;
         listaPedidos.prepend(card);
     });
@@ -279,16 +279,24 @@ onSnapshot(collection(db, "pedidos"), (snapshot) => {
 });
 
 // Função Auxiliar para renderizar o botão certo conforme o status
-function renderBotaoStatus(id, status) {
+// Função Inteligente: Muda o texto do botão conforme a escolha do cliente
+function renderBotaoStatus(id, status, metodo) {
     if (status === 'pendente') {
         return `<button onclick="alterarStatusPedido('${id}', 'preparando')" class="btn-save" style="background:#3498db; padding:8px;">Aceitar e Preparar</button>`;
     }
+    
     if (status === 'preparando') {
-        return `<button onclick="alterarStatusPedido('${id}', 'pronto')" class="btn-save" style="background:var(--accent); padding:8px;">Marcar como Pronto</button>`;
+        // Se for entrega, o próximo passo é sair para a rua. Se for retirada, é avisar que está pronto.
+        const textoBotao = (metodo === 'entrega') ? 'Saiu para Entrega' : 'Pronto para Retirada';
+        const novoStatus = (metodo === 'entrega') ? 'a caminho' : 'pronto';
+        
+        return `<button onclick="alterarStatusPedido('${id}', '${novoStatus}')" class="btn-save" style="background:var(--accent); padding:8px;">${textoBotao}</button>`;
     }
-    if (status === 'pronto') {
-        return `<button onclick="alterarStatusPedido('${id}', 'finalizado')" class="btn-save" style="background:var(--vinho-logo); padding:8px;">Finalizar Entrega</button>`;
+    
+    if (status === 'a caminho' || status === 'pronto') {
+        return `<button onclick="alterarStatusPedido('${id}', 'finalizado')" class="btn-save" style="background:var(--vinho-logo); padding:8px;">Finalizar Pedido (Concluído)</button>`;
     }
+    
     return '';
 }
 
