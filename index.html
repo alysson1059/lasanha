@@ -167,6 +167,30 @@
 
         <!-- Rodapé Fixo -->
         <div style="border-top: 2px solid #eee; padding-top: 15px;">
+
+            <!-- SEÇÃO: MÉTODO DE RECEBIMENTO (NOVO) -->
+<div style="margin-bottom: 15px; padding: 12px; background: #f0f7f4; border-radius: 10px; border: 1px solid #d1e7dd;">
+    <label style="display: block; font-weight: bold; color: var(--accent); margin-bottom: 8px; font-size: 0.9rem;">
+        <i class="fa-solid fa-truck-fast"></i> Como deseja receber?
+    </label>
+    <select id="metodo-envio" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd; background: white; cursor: pointer;">
+        <option value="entrega">Entrega em Casa</option>
+        <option value="retirada">Retirar no Local</option>
+    </select>
+
+    <!-- Aparece se escolher Retirada -->
+    <div id="info-retirada" style="display:none; margin-top: 10px; font-size: 0.85rem; color: #555;">
+        <p><strong>Endereço para retirada:</strong></p>
+        <p id="endereco-loja-exibicao">Carregando endereço da loja...</p>
+    </div>
+
+    <!-- Aparece se escolher Entrega -->
+    <div id="info-entrega" style="margin-top: 10px; font-size: 0.85rem; color: #555;">
+        <p id="calculo-frete-texto" style="font-weight: bold; color: var(--vinho-logo);">
+            Taxa de Entrega: R$ 0,00
+        </p>
+    </div>
+</div>
             
             <!-- SEÇÃO: FORMA DE PAGAMENTO -->
             <div style="margin-bottom: 20px; padding: 12px; background: #f9f9f9; border-radius: 10px; border: 1px solid #eee;">
