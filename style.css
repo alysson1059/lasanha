@@ -23,20 +23,7 @@ body { background: var(--bg); padding-bottom: 80px; }
     object-fit: cover; /* Agora ele cobrirá um espaço que tem o tamanho exato dela */
 }
 
-/* Responsividade do Banner para Mobile */
-@media (max-width: 767px) {
-    .profile-info {
-        margin-top: -30px; /* Sobe menos a logo no mobile */
-    }
-    
-    .text-info {
-        margin-top: 25px;  /* Ajusta a descida do texto no mobile */
-    }
-
-    .text-info h1 {
-        font-size: 1.3rem; /* Título um pouco menor no celular */
-    }
-}
+v
 .overlay {
     position: absolute; top: 0; width: 100%; height: 100%;
     background: linear-gradient(transparent, rgba(0,0,0,0.8));
@@ -150,19 +137,19 @@ body { background: var(--bg); padding-bottom: 80px; }
 .btn-adm {
     position: absolute; 
     right: 20px; 
-    bottom: 10px;
-    background-color: var(--vinho-logo); /* Cor Vinho */
+    top: 10px; /* Movido para o topo do cabeçalho */
+    background-color: var(--vinho-logo);
     color: var(--white) !important;
-    padding: 6px 14px; 
+    padding: 6px 12px; 
     border-radius: 5px; 
     text-decoration: none; 
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     font-weight: bold;
     border: 1px solid rgba(255,255,255,0.2);
     box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    z-index: 10;
     transition: 0.3s;
 }
-
 .btn-adm:hover {
     background-color: #7a1d21; /* Um vinho levemente mais claro ao passar o mouse */
 }
