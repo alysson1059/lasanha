@@ -9,7 +9,7 @@ const firebaseConfig = {
 };
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, onSnapshot,updateDoc, doc, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, collection, onSnapshot, updateDoc, doc, query, where, orderBy, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
@@ -292,6 +292,34 @@ if (checkoutBtn) {
     });
 }
 
+// Localize o final do checkoutBtn, antes do window.open
+const resumoItens = cart.map(item => `${item.quantity}x ${item.name}`).join(', ');
+
+try {
+    // SALVA O PEDIDO NO FIREBASE ANTES DE IR PARA O WHATSAPP
+    await addDoc(collection(db, "pedidos"), {
+        clienteNome: perfil.nome,
+        telefoneCliente: perfil.telefone,
+        endereco: enderecoCompleto,
+        resumoItens: resumoItens,
+        total: totalPedido,
+        status: "pendente",
+        data: serverTimestamp() // Usa o horário do servidor
+    });
+
+    // Abre o WhatsApp normalmente
+    window.open(`https://wa.me/${phoneLoja}?text=${encodeURIComponent(message)}`, '_blank');
+
+    // Limpa o carrinho
+    cart = [];
+    updateCartUI();
+    toggleCart();
+
+} catch (error) {
+    console.error("Erro ao salvar pedido:", error);
+    alert("Erro ao enviar pedido para o sistema. Tente novamente.");
+}
+
 window.toggleCart = () => {
     const modal = document.getElementById('cart-modal');
     if (modal) {
@@ -306,6 +334,14 @@ document.addEventListener('DOMContentLoaded', () => {
     loadProducts("Promoções"); // Inicia mostrando as promoções
     updateCartUI();            // Atualiza o carrinho (se tiver algo salvo)
     setupCategoryButtons();    // Ativa os cliques nos botões
+
+  const dadosSalvos = JSON.parse(localStorage.getItem('perfilCasaLasanha'));
+    if (dadosSalvos && dadosSalvos.telefone) {
+        carregarHistoricoPedidos(dadosSalvos.telefone);
+    } else {
+        carregarHistoricoPedidos(null); // Mostra o aviso para digitar o telefone
+    }
+  
 });
 
 // --- GEOLOCALIZAÇÃO REVERSA (Transformar GPS em Rua) ---
@@ -391,9 +427,14 @@ window.trocarAba = (idAba, elemento) => {
 
 function carregarHistoricoPedidos(telefone) {
     const listaHistorico = document.getElementById('lista-historico');
-    if (!telefone || !listaHistorico) return;
+    if (!listaHistorico) return;
 
-    // Filtra pedidos onde o telefone do cliente é igual ao salvo no perfil
+    // Se o usuário não salvou o perfil ainda, mantém o aviso inicial
+    if (!telefone) {
+        listaHistorico.innerHTML = '<p style="text-align:center; margin-top: 50px; color: #777;">Digite seu telefone no perfil para ver seu histórico.</p>';
+        return;
+    }
+
     const q = query(
         collection(db, "pedidos"), 
         where("telefoneCliente", "==", telefone),
@@ -403,8 +444,13 @@ function carregarHistoricoPedidos(telefone) {
     onSnapshot(q, (snapshot) => {
         listaHistorico.innerHTML = '';
         
+        // AVISO: Caso o telefone exista mas não tenha nenhum pedido no banco
         if (snapshot.empty) {
-            listaHistorico.innerHTML = '<p style="text-align:center;">Nenhum pedido encontrado para este número.</p>';
+            listaHistorico.innerHTML = `
+                <div style="text-align:center; margin-top:50px; color:#aaa;">
+                    <i class="fa-solid fa-receipt" style="font-size:3rem; opacity:0.2;"></i>
+                    <p>Você ainda não tem pedidos realizados.</p>
+                </div>`;
             return;
         }
 
@@ -413,14 +459,17 @@ function carregarHistoricoPedidos(telefone) {
             const id = docSnap.id;
             const statusCor = pedido.status === 'cancelado' ? '#ff6b6b' : (pedido.status === 'finalizado' ? '#82c91e' : '#f39c12');
 
+            // Formatação da data
+            const dataPedido = pedido.data ? new Date(pedido.data.seconds * 1000).toLocaleString() : 'Enviando...';
+
             listaHistorico.innerHTML += `
-                <div class="admin-card" style="border-left: 5px solid ${statusCor}; margin-bottom: 10px; padding: 15px;">
+                <div class="admin-card" style="border-left: 5px solid ${statusCor}; margin-bottom: 10px; padding: 15px; background: white; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
                     <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                         <div>
-                            <strong>Pedido #${id.slice(-5)}</strong><br>
-                            <small>${new Date(pedido.data.seconds * 1000).toLocaleString()}</small>
+                            <strong>Pedido #${id.slice(-5).toUpperCase()}</strong><br>
+                            <small>${dataPedido}</small>
                         </div>
-                        <span style="background: ${statusCor}; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; text-transform: uppercase;">
+                        <span style="background: ${statusCor}; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; text-transform: uppercase; font-weight: bold;">
                             ${pedido.status}
                         </span>
                     </div>
@@ -433,8 +482,7 @@ function carregarHistoricoPedidos(telefone) {
                             </button>
                         ` : ''}
                     </div>
-                </div>
-            `;
+                </div>`;
         });
     });
 }
