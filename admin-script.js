@@ -32,6 +32,14 @@ if (loginBtn) {
     };
 }
 
+// Função para trocar as abas do Painel
+window.trocarAbaAdmin = (idAba, btn) => {
+    document.querySelectorAll('.secao-admin').forEach(s => s.style.display = 'none');
+    document.getElementById(idAba).style.display = 'block';
+    document.querySelectorAll('.btn-nav-admin').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+};
+
 // --- 2. CONFIGURAÇÕES DE FRETE E STATUS DA LOJA ---
 window.getCurrentLocation = () => {
     if ("geolocation" in navigator) {
@@ -216,6 +224,81 @@ window.toggleStatus = async (id, current) => {
 
 window.deleteItem = async (id) => {
     if(confirm("Excluir permanentemente?")) await deleteDoc(doc(db, "produtos", id));
+};
+
+// --- 6. GESTÃO DE PEDIDOS EM TEMPO REAL E DASHBOARD ---
+onSnapshot(collection(db, "pedidos"), (snapshot) => {
+    const listaPedidos = document.getElementById('lista-pedidos-admin');
+    const faturamentoElement = document.getElementById('dash-faturamento');
+    const qtdPedidosElement = document.getElementById('dash-qtd-pedidos');
+    
+    if (!listaPedidos) return;
+
+    let faturamentoTotal = 0;
+    let totalPedidos = 0;
+    listaPedidos.innerHTML = '';
+
+    snapshot.forEach((docSnap) => {
+        const pedido = docSnap.data();
+        const id = docSnap.id;
+        totalPedidos++;
+
+        // Soma faturamento apenas de pedidos finalizados
+        if (pedido.status === 'finalizado') {
+            faturamentoTotal += pedido.total;
+        }
+
+        // Não mostra pedidos finalizados ou cancelados na lista ativa de trabalho
+        if (pedido.status === 'finalizado' || pedido.status === 'cancelado') return;
+
+        const dataPedido = pedido.data ? new Date(pedido.data.seconds * 1000).toLocaleTimeString() : '...';
+
+        const card = document.createElement('div');
+        card.className = `pedido-admin-card status-${pedido.status}`;
+        card.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                <div>
+                    <strong>#${id.slice(-5).toUpperCase()} - ${pedido.clienteNome}</strong><br>
+                    <small>${dataPedido} | ${pedido.formaPagamento}</small>
+                </div>
+                <span class="badge-status">${pedido.status}</span>
+            </div>
+            <hr style="border:0; border-top:1px solid #eee; margin:10px 0;">
+            <p style="font-size:0.9rem;">${pedido.resumoItens}</p>
+            <p><strong>Total: R$ ${pedido.total.toFixed(2)}</strong></p>
+            <div id="acoes-${id}">
+                ${renderBotaoStatus(id, pedido.status)}
+            </div>
+        `;
+        listaPedidos.prepend(card);
+    });
+
+    // Atualiza Dashboard
+    if (faturamentoElement) faturamentoElement.innerText = `R$ ${faturamentoTotal.toFixed(2)}`;
+    if (qtdPedidosElement) qtdPedidosElement.innerText = totalPedidos;
+});
+
+// Função Auxiliar para renderizar o botão certo conforme o status
+function renderBotaoStatus(id, status) {
+    if (status === 'pendente') {
+        return `<button onclick="alterarStatusPedido('${id}', 'preparando')" class="btn-save" style="background:#3498db; padding:8px;">Aceitar e Preparar</button>`;
+    }
+    if (status === 'preparando') {
+        return `<button onclick="alterarStatusPedido('${id}', 'pronto')" class="btn-save" style="background:var(--accent); padding:8px;">Marcar como Pronto</button>`;
+    }
+    if (status === 'pronto') {
+        return `<button onclick="alterarStatusPedido('${id}', 'finalizado')" class="btn-save" style="background:var(--vinho-logo); padding:8px;">Finalizar Entrega</button>`;
+    }
+    return '';
+}
+
+// Função Global para mudar o status no Firebase
+window.alterarStatusPedido = async (id, novoStatus) => {
+    try {
+        await updateDoc(doc(db, "pedidos", id), { status: novoStatus });
+    } catch (error) {
+        alert("Erro ao atualizar status: " + error.message);
+    }
 };
 
 loadStoreConfigs();
