@@ -18,6 +18,8 @@ const perfilForm = document.getElementById('perfil-form');
 
 let cart = JSON.parse(localStorage.getItem('casaLasanhaCart')) || [];
 let currentCategory = "Promoções";
+let storeConfigs = null;
+let currentDeliveryFee = 0;
 
 function monitorStoreStatus() {
     const statusText = document.getElementById('store-status'); // Verifique se o ID no HTML é este
@@ -207,7 +209,8 @@ function renderCartItems() {
             </div>
         `;
     }).join('');
-    totalPriceElement.innerText = `R$ ${total.toFixed(2)}`;
+   let totalComFrete = total + currentDeliveryFee; 
+    totalPriceElement.innerText = `R$ ${totalComFrete.toFixed(2).replace('.', ',')}`;
 }
 
 // Funções auxiliares para os botões da sacola
@@ -263,14 +266,19 @@ if (checkoutBtn) {
         const enderecoCompleto = `${perfil.rua}, Nº ${perfil.numero}${perfil.cep ? ', CEP: ' + perfil.cep : ''} (${perfil.referencia || 'Sem ref.'})`;
         const resumoItens = cart.map(item => `${item.quantity}x ${item.name}`).join(', ');
 
-        try {
-            // 4. SALVA O PEDIDO NO FIREBASE
+       try {
+            // NOVO: Pega se o cliente escolheu entrega ou retirada no momento do clique
+            const metodoEnvio = document.getElementById('metodo-envio').value;
+
+            // 4. SALVA O PEDIDO NO FIREBASE (Atualizado com frete e método)
             await addDoc(collection(db, "pedidos"), {
                 clienteNome: perfil.nome,
                 telefoneCliente: perfil.telefone,
                 endereco: enderecoCompleto,
                 resumoItens: resumoItens,
-                total: totalPedido,
+                total: totalPedido + currentDeliveryFee, // Salva o total já com o frete
+                metodo: metodoEnvio,                      // NOVO: Salva se é entrega ou retirada
+                taxaEntrega: currentDeliveryFee,          // NOVO: Salva o valor do frete cobrado
                 formaPagamento: formaPagamento,
                 status: "pendente",
                 data: serverTimestamp()
@@ -281,6 +289,7 @@ if (checkoutBtn) {
             message += `*Cliente:* ${perfil.nome}\n`;
             message += `*Telefone:* ${perfil.telefone}\n`;
             message += `*Endereço:* ${enderecoCompleto}\n`;
+            message += `*Método:* ${metodoEnvio === 'entrega' ? 'Entrega em Casa' : 'Retirar no Local'}\n`;
             message += `*Pagamento:* ${formaPagamento}\n`;
             
             if (formaPagamento === 'Dinheiro' && trocoPara) {
@@ -495,4 +504,65 @@ window.maskMoney = (input) => {
     
     input.value = value;
 };
+
+window.toggleEntrega = (metodo) => {
+    const infoRetirada = document.getElementById('info-retirada');
+    const infoEntrega = document.getElementById('info-entrega');
+    
+    if (metodo === 'retirada') {
+        infoRetirada.style.display = 'block';
+        infoEntrega.style.display = 'none';
+        currentDeliveryFee = 0; // Retirada não tem frete
+    } else {
+        infoRetirada.style.display = 'none';
+        infoEntrega.style.display = 'block';
+        calcularFreteAutomatico(); // Calcula o frete para entrega
+    }
+    renderCartItems(); // Atualiza o total na tela
+};
+
+async function calcularFreteAutomatico() {
+    // 1. Busca as configurações que você salvou no ADM
+    if (!storeConfigs) {
+        const docSnap = await getDoc(doc(db, "configuracoes", "loja"));
+        if (docSnap.exists()) storeConfigs = docSnap.data();
+    }
+
+    const perfil = JSON.parse(localStorage.getItem('perfilCasaLasanha'));
+    const textoFrete = document.getElementById('calculo-frete-texto');
+    const enderecoLoja = document.getElementById('endereco-loja-exibicao');
+
+    if (storeConfigs && enderecoLoja) {
+        enderecoLoja.innerText = storeConfigs.address;
+    }
+
+    // Se o cliente não tem endereço no perfil, assume taxa fixa
+    if (!perfil || !perfil.rua || !storeConfigs) {
+        currentDeliveryFee = storeConfigs ? parseFloat(storeConfigs.fixedValue.replace(',', '.')) : 0;
+        if (textoFrete) textoFrete.innerText = `Taxa de Entrega: R$ ${currentDeliveryFee.toFixed(2).replace('.', ',')}`;
+        return;
+    }
+
+    // --- LÓGICA DE DISTÂNCIA SIMPLIFICADA ---
+    // Em um sistema real, usaríamos a API do Google Maps aqui. 
+    // Como exemplo, vamos usar uma distância fixa de 5km para validar sua lógica do ADM:
+    const distanciaSimulada = 5; 
+    
+    let taxa = parseFloat(storeConfigs.fixedValue.replace(',', '.'));
+
+    // Se a distância for maior que o limite de frete grátis do ADM
+    if (distanciaSimulada > storeConfigs.freeKm) {
+        const kmExtra = distanciaSimulada - storeConfigs.freeKm;
+        const valorAdicional = kmExtra * parseFloat(storeConfigs.kmValue.replace(',', '.'));
+        taxa += valorAdicional;
+    } else {
+        taxa = 0; // Dentro do limite de KM grátis
+    }
+
+    currentDeliveryFee = taxa;
+    if (textoFrete) {
+        textoFrete.innerText = taxa === 0 ? "Entrega Grátis!" : `Taxa de Entrega: R$ ${taxa.toFixed(2).replace('.', ',')}`;
+    }
+    renderCartItems();
+}
 
