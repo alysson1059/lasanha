@@ -225,100 +225,90 @@ window.removeItem = (index) => {
 };
 // 3. FINALIZAR NO WHATSAPP (COM CORREÇÃO PARA O ERRO NULL)
 // --- FINALIZAR NO WHATSAPP (CORRIGIDO) ---
+// --- FINALIZAR NO WHATSAPP E SALVAR NO FIREBASE ---
 const checkoutBtn = document.querySelector('.btn-checkout');
 
 if (checkoutBtn) {
-    checkoutBtn.addEventListener('click', () => {
+    checkoutBtn.addEventListener('click', async () => {
         const perfil = JSON.parse(localStorage.getItem('perfilCasaLasanha'));
         
-        // 1. Captura os valores dos campos de pagamento e troco
         const formaPagamento = document.getElementById('payment-method').value;
         const trocoPara = document.getElementById('troco-valor').value;
 
-        // 2. Validação de perfil (campos obrigatórios)
+        // 1. Validações
         if (!perfil || !perfil.telefone || !perfil.rua || !perfil.numero) {
             alert("Por favor, preencha seu endereço e telefone no Perfil antes de pedir.");
             trocarAba('aba-perfil', document.querySelectorAll('.nav-item')[2]); 
             return;
         }
 
-        // 3. Validação de carrinho vazio
         if (cart.length === 0) return alert("Seu carrinho está vazio!");
 
-        // 4. Cálculo do valor total (Essencial para a validação do troco)
+        // 2. Cálculos
         let totalPedido = 0;
         cart.forEach(item => {
             totalPedido += item.price * item.quantity;
         });
 
-        // 5. Validação do troco (se a forma de pagamento for Dinheiro)
+        // 3. Validação do Troco
         if (formaPagamento === 'Dinheiro' && trocoPara) {
-           const valorTrocoNum = parseFloat(trocoPara.replace(/\./g, "").replace(",", "."));
-          if (valorTrocoNum <= totalPedido) {
-        alert(`O valor para troco (R$ ${valorTrocoNum.toFixed(2).replace(".", ",")}) deve ser maior que o total do pedido!`);
-        return;
-    }
-}
-
-        // 6. Montagem da mensagem (Declarada apenas UMA vez aqui)
-        const enderecoCompleto = `${perfil.rua}, Nº ${perfil.numero}${perfil.cep ? ', CEP: ' + perfil.cep : ''} (${perfil.referencia || 'Sem ref.'})`;
-
-        let message = `*Pedido Casa da Lasanha*\n\n`;
-        message += `*Cliente:* ${perfil.nome}\n`;
-        message += `*Telefone:* ${perfil.telefone}\n`;
-        message += `*Endereço:* ${enderecoCompleto}\n`;
-        message += `*Pagamento:* ${formaPagamento}\n`;
-        
-        if (formaPagamento === 'Dinheiro' && trocoPara) {
-            message += `*Troco para:* R$ ${parseFloat(trocoPara).toFixed(2)}\n`;
+            const valorTrocoNum = parseFloat(trocoPara.replace(/\./g, "").replace(",", "."));
+            if (valorTrocoNum <= totalPedido) {
+                alert(`O valor para troco (R$ ${valorTrocoNum.toFixed(2).replace(".", ",")}) deve ser maior que o total do pedido!`);
+                return;
+            }
         }
-        
-        message += `\n*ITENS DO PEDIDO:*\n`;
-        
-        cart.forEach(item => {
-            message += `• ${item.quantity}x ${item.name} - R$ ${(item.price * item.quantity).toFixed(2)}\n`;
-        });
 
-        message += `\n*TOTAL: R$ ${totalPedido.toFixed(2)}*`;
+        const enderecoCompleto = `${perfil.rua}, Nº ${perfil.numero}${perfil.cep ? ', CEP: ' + perfil.cep : ''} (${perfil.referencia || 'Sem ref.'})`;
+        const resumoItens = cart.map(item => `${item.quantity}x ${item.name}`).join(', ');
 
-        // 7. Configuração do telefone da loja e abertura do WhatsApp
-        const phoneLoja = "5579996737203"; 
-        window.open(`https://wa.me/${phoneLoja}?text=${encodeURIComponent(message)}`, '_blank');
+        try {
+            // 4. SALVA O PEDIDO NO FIREBASE
+            await addDoc(collection(db, "pedidos"), {
+                clienteNome: perfil.nome,
+                telefoneCliente: perfil.telefone,
+                endereco: enderecoCompleto,
+                resumoItens: resumoItens,
+                total: totalPedido,
+                formaPagamento: formaPagamento,
+                status: "pendente",
+                data: serverTimestamp()
+            });
 
-        // 8. Limpeza do carrinho e fechamento do modal
-        cart = [];
-        updateCartUI();
-        toggleCart();
+            // 5. MONTA A MENSAGEM PARA WHATSAPP
+            let message = `*Pedido Casa da Lasanha*\n\n`;
+            message += `*Cliente:* ${perfil.nome}\n`;
+            message += `*Telefone:* ${perfil.telefone}\n`;
+            message += `*Endereço:* ${enderecoCompleto}\n`;
+            message += `*Pagamento:* ${formaPagamento}\n`;
+            
+            if (formaPagamento === 'Dinheiro' && trocoPara) {
+                message += `*Troco para:* R$ ${parseFloat(trocoPara.replace(/\./g, "").replace(",", ".")).toFixed(2).replace(".", ",")}\n`;
+            }
+            
+            message += `\n*ITENS DO PEDIDO:*\n`;
+            cart.forEach(item => {
+                message += `• ${item.quantity}x ${item.name} - R$ ${(item.price * item.quantity).toFixed(2)}\n`;
+            });
+            message += `\n*TOTAL: R$ ${totalPedido.toFixed(2)}*`;
+
+            // 6. ABRE WHATSAPP E LIMPA TUDO
+            const phoneLoja = "5579996737203"; 
+            window.open(`https://wa.me/${phoneLoja}?text=${encodeURIComponent(message)}`, '_blank');
+
+            cart = [];
+            updateCartUI();
+            toggleCart();
+            mostrarAviso("Pedido enviado!");
+
+        } catch (error) {
+            console.error("Erro ao salvar pedido:", error);
+            alert("Erro ao enviar pedido para o sistema. Tente novamente.");
+        }
     });
 }
 
-// Localize o final do checkoutBtn, antes do window.open
-const resumoItens = cart.map(item => `${item.quantity}x ${item.name}`).join(', ');
-
-try {
-    // SALVA O PEDIDO NO FIREBASE ANTES DE IR PARA O WHATSAPP
-    await addDoc(collection(db, "pedidos"), {
-        clienteNome: perfil.nome,
-        telefoneCliente: perfil.telefone,
-        endereco: enderecoCompleto,
-        resumoItens: resumoItens,
-        total: totalPedido,
-        status: "pendente",
-        data: serverTimestamp() // Usa o horário do servidor
-    });
-
-    // Abre o WhatsApp normalmente
-    window.open(`https://wa.me/${phoneLoja}?text=${encodeURIComponent(message)}`, '_blank');
-
-    // Limpa o carrinho
-    cart = [];
-    updateCartUI();
-    toggleCart();
-
-} catch (error) {
-    console.error("Erro ao salvar pedido:", error);
-    alert("Erro ao enviar pedido para o sistema. Tente novamente.");
-}
+// --- FUNÇÕES DE INTERFACE E HISTÓRICO ---
 
 window.toggleCart = () => {
     const modal = document.getElementById('cart-modal');
@@ -328,108 +318,10 @@ window.toggleCart = () => {
     }
 };
 
-// Inicializar tudo
-document.addEventListener('DOMContentLoaded', () => {
-    monitorStoreStatus();
-    loadProducts("Promoções"); // Inicia mostrando as promoções
-    updateCartUI();            // Atualiza o carrinho (se tiver algo salvo)
-    setupCategoryButtons();    // Ativa os cliques nos botões
-
-  const dadosSalvos = JSON.parse(localStorage.getItem('perfilCasaLasanha'));
-    if (dadosSalvos && dadosSalvos.telefone) {
-        carregarHistoricoPedidos(dadosSalvos.telefone);
-    } else {
-        carregarHistoricoPedidos(null); // Mostra o aviso para digitar o telefone
-    }
-  
-});
-
-// --- GEOLOCALIZAÇÃO REVERSA (Transformar GPS em Rua) ---
-window.getUserLocation = () => {
-    if ("geolocation" in navigator) {
-        navigator.geolocation.getCurrentPosition(async (position) => {
-            const { latitude, longitude } = position.coords;
-            try {
-                // Usando o OpenStreetMap (Gratuito) para buscar o endereço
-                const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
-                const data = await response.json();
-                
-                if (data.address) {
-                    document.getElementById('user-street').value = data.address.road || '';
-                    document.getElementById('user-cep').value = data.address.postcode || '';
-                    mostrarAviso("Localização aproximada carregada!");
-                }
-            } catch (error) {
-                mostrarAviso("Erro ao converter localização.");
-            }
-        });
-    }
-};
-
-// --- SALVAR E CARREGAR ---
-function carregarDadosPerfil() {
-    const dados = JSON.parse(localStorage.getItem('perfilCasaLasanha'));
-    if (dados) {
-        document.getElementById('user-name').value = dados.nome || '';
-        document.getElementById('user-phone').value = dados.telefone || '';
-        document.getElementById('user-street').value = dados.rua || '';
-        document.getElementById('user-number').value = dados.numero || '';
-        document.getElementById('user-cep').value = dados.cep || '';
-        document.getElementById('user-ref').value = dados.referencia || '';
-    }
-}
-
-document.getElementById('perfil-form').onsubmit = (e) => {
-    e.preventDefault();
-    
-    const telefone = document.getElementById('user-phone').value;
-    
-    // Validação: Um telefone formatado (XX) XXXXX-XXXX tem entre 14 e 15 caracteres
-    if (telefone.length < 14) {
-        alert("Por favor, insira o número de WhatsApp completo com DDD.");
-        return;
-    }
-
-    const perfil = {
-        nome: document.getElementById('user-name').value,
-        telefone: telefone,
-        rua: document.getElementById('user-street').value,
-        numero: document.getElementById('user-number').value,
-        cep: document.getElementById('user-cep').value,
-        referencia: document.getElementById('user-ref').value
-    };
-    
-    localStorage.setItem('perfilCasaLasanha', JSON.stringify(perfil));
-    carregarHistoricoPedidos(perfil.telefone); 
-    mostrarAviso("Perfil Salvo!");
-};
-
-
-// FUNÇÃO PARA TROCAR AS ABAS
-window.trocarAba = (idAba, elemento) => {
-    // 1. Esconde todas as seções
-    document.querySelectorAll('.secao-aba').forEach(aba => {
-        aba.style.display = 'none';
-    });
-
-    // 2. Mostra a aba clicada
-    document.getElementById(idAba).style.display = 'block';
-
-    // 3. Muda a cor do ícone no menu inferior
-    document.querySelectorAll('.nav-item').forEach(item => {
-        item.classList.remove('active');
-    });
-    elemento.classList.add('active');
-
-    // 4. Se mudar de aba, sobe para o topo da página
-    window.scrollTo(0, 0);
-};
-
 function carregarHistoricoPedidos(telefone) {
     const listaHistorico = document.getElementById('lista-historico');
     if (!listaHistorico) return;
 
-    // Se o usuário não salvou o perfil ainda, mantém o aviso inicial
     if (!telefone) {
         listaHistorico.innerHTML = '<p style="text-align:center; margin-top: 50px; color: #777;">Digite seu telefone no perfil para ver seu histórico.</p>';
         return;
@@ -444,7 +336,6 @@ function carregarHistoricoPedidos(telefone) {
     onSnapshot(q, (snapshot) => {
         listaHistorico.innerHTML = '';
         
-        // AVISO: Caso o telefone exista mas não tenha nenhum pedido no banco
         if (snapshot.empty) {
             listaHistorico.innerHTML = `
                 <div style="text-align:center; margin-top:50px; color:#aaa;">
@@ -458,8 +349,6 @@ function carregarHistoricoPedidos(telefone) {
             const pedido = docSnap.data();
             const id = docSnap.id;
             const statusCor = pedido.status === 'cancelado' ? '#ff6b6b' : (pedido.status === 'finalizado' ? '#82c91e' : '#f39c12');
-
-            // Formatação da data
             const dataPedido = pedido.data ? new Date(pedido.data.seconds * 1000).toLocaleString() : 'Enviando...';
 
             listaHistorico.innerHTML += `
@@ -487,12 +376,11 @@ function carregarHistoricoPedidos(telefone) {
     });
 }
 
-// Função para o usuário deletar/cancelar o pedido se estiver pendente
 window.cancelarPedido = async (id) => {
     if (confirm("Deseja realmente cancelar este pedido?")) {
         try {
             await updateDoc(doc(db, "pedidos", id), { status: 'cancelado' });
-            alert("Pedido cancelado.");
+            mostrarAviso("Pedido cancelado.");
         } catch (error) {
             alert("Erro ao cancelar: " + error.message);
         }
