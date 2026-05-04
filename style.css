@@ -116,17 +116,9 @@ v
 
 .text-info h1 { 
     font-size: 1.5rem; 
-    color: #333;         /* Mudei para uma cor escura, já que agora está fora do banner */
-    text-shadow: none;   /* Removi a sombra, pois agora o fundo é claro */
+    color: var(--vinho-logo); /* Use a cor da marca para melhor leitura */
+    text-shadow: none; 
     margin-bottom: 2px;
-}
-
-.text-info p { 
-    color: #f1f1f1; /* Um cinza quase branco para ler sobre o fundo escuro */
-    font-size: 0.95rem;
-    font-weight: 500;
-    margin-top: 2px;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.8); /* Sombra para garantir leitura */
 }
 
 .status { font-weight: bold; font-size: 0.8rem; display: block; margin-top: 5px; }
@@ -221,4 +213,52 @@ v
     15% { opacity: 1; transform: translate(-50%, 0); }
     85% { opacity: 1; transform: translate(-50%, 0); }
     100% { opacity: 0; transform: translate(-50%, -20px); }
+}
+
+/* Estilos para as Abas do Painel Administrativo */
+.secao-admin {
+    display: none; /* Esconde por padrão */
+    animation: fadeIn 0.3s ease;
+}
+
+.btn-nav-admin {
+    background: #eee; 
+    border: none; 
+    padding: 10px 20px; 
+    border-radius: 8px;
+    cursor: pointer; 
+    font-weight: bold; 
+    color: #666; 
+    white-space: nowrap;
+    transition: 0.3s;
+}
+
+.btn-nav-admin.active { 
+    background: var(--vinho-logo); 
+    color: white; 
+}
+
+/* Cartões de Pedidos no Admin */
+.pedido-admin-card {
+    background: #fff; 
+    border: 1px solid #ddd; 
+    border-radius: 8px;
+    padding: 15px; 
+    margin-bottom: 15px; 
+    border-left: 6px solid #ddd;
+}
+
+/* Cores por Status do Pedido */
+.status-pendente { border-left-color: #f39c12 !important; }
+.status-preparando { border-left-color: #3498db !important; }
+.status-pronto { border-left-color: var(--accent) !important; }
+.status-finalizado { border-left-color: #82c91e !important; }
+
+.badge-status {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    font-weight: bold;
+    background: #eee;
 }
