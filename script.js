@@ -387,12 +387,37 @@ window.cancelarPedido = async (id) => {
     }
 };
 
+// 1. Defina a função primeiro
+function carregarDadosPerfil() {
+    const dados = JSON.parse(localStorage.getItem('perfilCasaLasanha'));
+    if (dados) {
+        const nameField = document.getElementById('user-name');
+        const phoneField = document.getElementById('user-phone');
+        const streetField = document.getElementById('user-street');
+        const numberField = document.getElementById('user-number');
+        const cepField = document.getElementById('user-cep');
+        const refField = document.getElementById('user-ref');
+
+        if (nameField) nameField.value = dados.nome || '';
+        if (phoneField) phoneField.value = dados.telefone || '';
+        if (streetField) streetField.value = dados.rua || '';
+        if (numberField) numberField.value = dados.numero || '';
+        if (cepField) cepField.value = dados.cep || '';
+        if (refField) refField.value = dados.referencia || '';
+        
+        if (dados.telefone) {
+            carregarHistoricoPedidos(dados.telefone);
+        }
+    }
+}
+
+// 2. Depois configure o evento que vai chamar ela
 document.addEventListener('DOMContentLoaded', () => {
     monitorStoreStatus();
     loadProducts("Promoções");
     updateCartUI(); 
     setupCategoryButtons();
-    carregarDadosPerfil(); // <--- NÃO ESQUEÇA ESTA
+    carregarDadosPerfil(); // Agora o JS já conhece a função acima
 });
 
 window.maskPhone = (input) => {
@@ -441,30 +466,4 @@ window.maskMoney = (input) => {
     
     input.value = value;
 };
-
-// --- CARREGAR DADOS NO FORMULÁRIO ---
-function carregarDadosPerfil() {
-    const dados = JSON.parse(localStorage.getItem('perfilCasaLasanha'));
-    if (dados) {
-        // Verifica se os campos existem antes de preencher
-        const nameField = document.getElementById('user-name');
-        const phoneField = document.getElementById('user-phone');
-        const streetField = document.getElementById('user-street');
-        const numberField = document.getElementById('user-number');
-        const cepField = document.getElementById('user-cep');
-        const refField = document.getElementById('user-ref');
-
-        if (nameField) nameField.value = dados.nome || '';
-        if (phoneField) phoneField.value = dados.telefone || '';
-        if (streetField) streetField.value = dados.rua || '';
-        if (numberField) numberField.value = dados.numero || '';
-        if (cepField) cepField.value = dados.cep || '';
-        if (refField) refField.value = dados.referencia || '';
-        
-        // Se houver telefone, já carrega o histórico também
-        if (dados.telefone) {
-            carregarHistoricoPedidos(dados.telefone);
-        }
-    }
-}
 
