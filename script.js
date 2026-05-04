@@ -388,6 +388,34 @@ window.cancelarPedido = async (id) => {
     }
 };
 
+// --- FUNÇÃO PARA TROCAR AS ABAS (CARDÁPIO, PEDIDOS, PERFIL) ---
+window.trocarAba = (idAba, elemento) => {
+    // 1. Esconde todas as seções (sections) que têm a classe 'secao-aba'
+    document.querySelectorAll('.secao-aba').forEach(aba => {
+        aba.style.display = 'none';
+    });
+
+    // 2. Mostra apenas a aba que foi clicada
+    const abaParaMostrar = document.getElementById(idAba);
+    if (abaParaMostrar) {
+        abaParaMostrar.style.display = 'block';
+    }
+
+    // 3. Gerencia a aparência dos botões no menu inferior (cor preta/cinza)
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active');
+    });
+
+    // Se um elemento foi passado (o botão clicado), marca como ativo
+    if (elemento) {
+        elemento.classList.add('active');
+    }
+
+    // 4. Sobe a tela para o topo automaticamente
+    window.scrollTo(0, 0);
+};
+
+
 // 1. Defina a função primeiro
 function carregarDadosPerfil() {
     const dados = JSON.parse(localStorage.getItem('perfilCasaLasanha'));
