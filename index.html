@@ -73,47 +73,53 @@
             <p style="font-size: 0.9rem; color: #666;">Mantenha seus dados atualizados para entregas rápidas</p>
         </div>
 
-        <form id="perfil-form" class="admin-card" style="background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
-            <div class="form-group">
-                <label><i class="fa-solid fa-signature"></i> Nome Completo</label>
-                <input type="text" id="user-name" placeholder="Ex: João Silva" required>
-            </div>
+      <form id="perfil-form" class="admin-card" style="background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+    <!-- Nome Completo -->
+    <div class="form-group" style="margin-bottom: 15px;">
+        <label style="display: block; margin-bottom: 5px;"><i class="fa-solid fa-signature"></i> Nome</label>
+        <input type="text" id="user-name" placeholder="Ex: João Silva" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px;" required>
+    </div>
 
-            <div class="form-group">
-    <label><i class="fa-brands fa-whatsapp"></i> WhatsApp</label>
-    <!-- Alterado para type="text" e adicionado o evento oninput -->
-    <input type="text" id="user-phone" placeholder="(79) 99999-9999" maxlength="15" oninput="maskPhone(this)">
-</div>
-            <div style="margin-top: 20px; border-top: 1px dashed #ddd; padding-top: 20px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                    <label style="margin: 0; font-weight: bold; color: var(--vinho-logo);">Endereço de Entrega</label>
-                    <button type="button" onclick="getUserLocation()" style="background: var(--accent); color: white; border: none; padding: 5px 12px; border-radius: 50px; font-size: 0.75rem; cursor: pointer;">
-                        <i class="fa-solid fa-location-crosshairs"></i> Usar GPS
-                    </button>
-                </div>
+    <!-- WhatsApp -->
+    <div class="form-group" style="margin-bottom: 15px;">
+        <label style="display: block; margin-bottom: 5px;"><i class="fa-brands fa-whatsapp"></i> WhatsApp/contato</label>
+        <input type="text" id="user-phone" placeholder="(79) 99999-9999" maxlength="15" oninput="maskPhone(this)" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px;">
+    </div>
 
-                <div class="form-group">
-                    <input type="text" id="user-street" placeholder="Rua / Avenida" required>
-                </div>
+    <!-- Seção de Endereço -->
+    <div style="margin-top: 20px; border-top: 1px dashed #ddd; padding-top: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <label style="margin: 0; font-weight: bold; color: var(--vinho-logo);">Endereço de Entrega</label>
+            <button type="button" onclick="getUserLocation()" style="background: var(--accent); color: white; border: none; padding: 5px 12px; border-radius: 50px; font-size: 0.75rem; cursor: pointer;">
+                <i class="fa-solid fa-location-crosshairs"></i> Usar GPS
+            </button>
+        </div>
 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <div class="form-group">
-                        <input type="text" id="user-number" placeholder="Nº ou S/N" required>
-                    </div>
-                    <div class="form-group">
-                        <input type="text" id="user-cep" placeholder="CEP (Opcional)">
-                    </div>
-                </div>
+        <!-- Rua / Avenida -->
+        <div class="form-group" style="margin-bottom: 10px;">
+            <input type="text" id="user-street" placeholder="Rua / Avenida" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px;" required>
+        </div>
 
-                <div class="form-group">
-                    <input type="text" id="user-ref" placeholder="Ponto de Referência (Ex: Próximo ao mercado)">
-                </div>
-            </div>
+        <!-- CEP (Agora abaixo do endereço) -->
+        <div class="form-group" style="margin-bottom: 10px;">
+            <input type="text" id="user-cep" placeholder="CEP (Opcional)" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px;">
+        </div>
 
-          <button type="submit" class="btn-save" style="margin-top: 10px; background: var(--vinho-logo); color: white; border-radius: 8px; border: none; padding: 12px; width: 100%; cursor: pointer; font-weight: bold;">
-    <i class="fa-solid fa-check"></i> Salvar Perfil
-</button>
-        </form>
+        <!-- Número e Ponto de Referência (Empilhados verticalmente no mobile para evitar erro de tela) -->
+        <div class="form-group" style="margin-bottom: 10px;">
+            <input type="text" id="user-number" placeholder="Nº ou S/N" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px;" required>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 15px;">
+            <input type="text" id="user-ref" placeholder="Ponto de Referência (Ex: Próximo ao mercado)" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px;">
+        </div>
+    </div>
+
+    <!-- Botão Salvar -->
+    <button type="submit" class="btn-save" style="margin-top: 10px; background: var(--vinho-logo); color: white; border-radius: 8px; border: none; padding: 15px; width: 100%; cursor: pointer; font-weight: bold; font-size: 1rem;">
+        <i class="fa-solid fa-check"></i> Salvar Perfil
+    </button>
+</form>
     </div>
 </section>
 
