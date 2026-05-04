@@ -8,6 +8,7 @@ const firebaseConfig = {
   appId: "1:77119265150:web:d9766389b5551cf28abb2f"
 };
 
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getFirestore, collection, onSnapshot, updateDoc, doc, query, where, orderBy, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
