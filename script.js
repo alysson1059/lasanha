@@ -20,6 +20,7 @@ let cart = JSON.parse(localStorage.getItem('casaLasanhaCart')) || [];
 let currentCategory = "Promoções";
 let storeConfigs = null;
 let currentDeliveryFee = 0;
+let gpsValidado = false; // Começa como falso
 
 function monitorStoreStatus() {
     const statusText = document.getElementById('store-status'); // Verifique se o ID no HTML é este
@@ -235,7 +236,20 @@ const checkoutBtn = document.querySelector('.btn-checkout');
 if (checkoutBtn) {
     checkoutBtn.addEventListener('click', async () => {
         const perfil = JSON.parse(localStorage.getItem('perfilCasaLasanha'));
-        
+        const metodoEnvio = document.getElementById('metodo-envio').value; // Pega se é entrega ou retirada
+
+        // --- PASSO C: TRAVA DE SEGURANÇA ---
+        // Se for entrega E o GPS não foi validado E não temos coordenadas salvas...
+        if (metodoEnvio === 'entrega' && !gpsValidado && (!perfil || !perfil.lat)) {
+            alert("⚠️ Atenção: Para pedidos de entrega, você precisa validar sua localização no 'Perfil' usando o botão GPS para calcularmos o frete corretamente.");
+            
+            // Leva o usuário automaticamente para a aba de Perfil para ele clicar no botão
+            const navItems = document.querySelectorAll('.nav-item');
+            trocarAba('aba-perfil', navItems[2]); 
+            return; // Interrompe o envio do pedido aqui
+        }
+
+        // --- RESTANTE DO SEU CÓDIGO DE CHECKOUT (Pagamento, WhatsApp, Firebase...) ---
         const formaPagamento = document.getElementById('payment-method').value;
         const trocoPara = document.getElementById('troco-valor').value;
 
@@ -565,4 +579,38 @@ async function calcularFreteAutomatico() {
     }
     renderCartItems();
 }
+
+// --- PASSO B: CAPTURAR LOCALIZAÇÃO E VALIDAR GPS ---
+window.getUserLocation = () => {
+    if ("geolocation" in navigator) {
+        // Mostra um aviso de "carregando" enquanto busca o sinal
+        mostrarAviso("Buscando sua localização...");
+
+        navigator.geolocation.getCurrentPosition((position) => {
+            const { latitude, longitude } = position.coords;
+            
+            // 1. Salva as coordenadas no Perfil do usuário (LocalStorage)
+            const perfilAtual = JSON.parse(localStorage.getItem('perfilCasaLasanha')) || {};
+            perfilAtual.lat = latitude;
+            perfilAtual.lng = longitude;
+            localStorage.setItem('perfilCasaLasanha', JSON.stringify(perfilAtual));
+
+            // 2. Marca o GPS como validado para liberar o botão de finalizar
+            gpsValidado = true;
+
+            // 3. Esconde o aviso amarelo (se ele existir no HTML)
+            const avisoGps = document.getElementById('aviso-gps-pendente');
+            if (avisoGps) avisoGps.style.display = 'none';
+
+            alert("Localização validada com sucesso! Agora você pode finalizar seu pedido.");
+            
+            // 4. Recalcula o frete automaticamente agora que temos o GPS
+            calcularFreteAutomatico();
+        }, (error) => {
+            alert("Erro ao obter localização: " + error.message + ". Por favor, tente novamente.");
+        });
+    } else {
+        alert("Seu navegador não suporta geolocalização.");
+    }
+};
 
