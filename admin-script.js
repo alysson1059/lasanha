@@ -127,6 +127,18 @@ document.getElementById('btn-save-configs').onclick = async () => {
         }
     }
 
+    const enderecoTexto = document.getElementById('store-address').value.trim();
+
+if (enderecoTexto.includes(',')) {
+    const partes = enderecoTexto.split(',');
+
+    storeLat = parseFloat(partes[0].trim());
+    storeLng = parseFloat(partes[1].trim());
+
+    console.log("NOVA LAT:", storeLat);
+    console.log("NOVA LNG:", storeLng);
+}
+
     const config = {
         status: document.getElementById('store-status-select').value,
         address: enderecoDigitado,
