@@ -348,9 +348,18 @@ if (checkoutBtn) {
 
 window.toggleCart = () => {
     const modal = document.getElementById('cart-modal');
+
     if (modal) {
         modal.style.display = (modal.style.display === 'block') ? 'none' : 'block';
-        renderCartItems();
+
+        const metodoEnvio = document.getElementById('metodo-envio')?.value;
+
+        if (metodoEnvio === 'entrega') {
+            calcularFreteAutomatico();
+        } else {
+            currentDeliveryFee = 0;
+            renderCartItems();
+        }
     }
 };
 
