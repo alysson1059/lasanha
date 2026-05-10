@@ -10,7 +10,19 @@ const firebaseConfig = {
 
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, onSnapshot, updateDoc, doc, query, where, orderBy, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { 
+    getFirestore, 
+    collection, 
+    onSnapshot, 
+    updateDoc, 
+    doc, 
+    query, 
+    where, 
+    orderBy, 
+    addDoc, 
+    serverTimestamp,
+    getDoc
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
