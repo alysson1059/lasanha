@@ -604,6 +604,16 @@ async function calcularFreteAutomatico() {
         return;
     }
 
+  console.log("===== DEBUG FRETE =====");
+console.log("Configurações da loja:", storeConfigs);
+console.log("Lat loja:", storeConfigs.storeLat);
+console.log("Lng loja:", storeConfigs.storeLng);
+
+console.log("Perfil cliente:", perfil);
+console.log("Lat cliente:", perfil.lat);
+console.log("Lng cliente:", perfil.lng);
+console.log("=======================");
+
     const distanciaKm = calcularDistanciaKm(
         Number(storeConfigs.storeLat),
         Number(storeConfigs.storeLng),
