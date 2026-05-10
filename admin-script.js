@@ -112,15 +112,30 @@ async function loadStoreConfigs() {
 
 // --- SALVAR CONFIGURAÇÕES ---
 document.getElementById('btn-save-configs').onclick = async () => {
-   const config = {
-    status: document.getElementById('store-status-select').value,
-    address: document.getElementById('store-address').value,
-    storeLat: storeLat,
-    storeLng: storeLng,
-    freeKm: Number(document.getElementById('free-km').value),
-    kmValue: document.getElementById('km-value').value,
-    fixedValue: document.getElementById('fixed-delivery').value
-};
+    const enderecoDigitado = document.getElementById('store-address').value.trim();
+
+    // Se o endereço estiver no formato: -10.855102, -37.126385
+    if (enderecoDigitado.includes(',')) {
+        const partes = enderecoDigitado.split(',');
+
+        const latDigitada = parseFloat(partes[0].trim());
+        const lngDigitada = parseFloat(partes[1].trim());
+
+        if (!isNaN(latDigitada) && !isNaN(lngDigitada)) {
+            storeLat = latDigitada;
+            storeLng = lngDigitada;
+        }
+    }
+
+    const config = {
+        status: document.getElementById('store-status-select').value,
+        address: enderecoDigitado,
+        storeLat: storeLat,
+        storeLng: storeLng,
+        freeKm: Number(document.getElementById('free-km').value),
+        kmValue: document.getElementById('km-value').value,
+        fixedValue: document.getElementById('fixed-delivery').value
+    };
 
     try {
         await setDoc(doc(db, "configuracoes", "loja"), config);
