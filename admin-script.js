@@ -22,39 +22,41 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-setPersistence(auth, browserLocalPersistence);
+async function iniciarAuthAdmin() {
+    await setPersistence(auth, browserLocalPersistence);
 
-onAuthStateChanged(auth, (user) => {
-    if (user) {
-        document.getElementById('login-overlay').style.display = 'none';
-        document.getElementById('admin-content').style.display = 'block';
-        loadStoreConfigs();
-    } else {
-        document.getElementById('login-overlay').style.display = 'flex';
-        document.getElementById('admin-content').style.display = 'none';
-    }
-});
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            document.getElementById('login-overlay').style.display = 'none';
+            document.getElementById('admin-content').style.display = 'block';
+            loadStoreConfigs();
+        } else {
+            document.getElementById('login-overlay').style.display = 'flex';
+            document.getElementById('admin-content').style.display = 'none';
+        }
+    });
+}
+
+iniciarAuthAdmin();
 
 window.logoutAdmin = async () => {
     await signOut(auth);
-    location.reload();
 };
 
 // --- 1. CONTROLE DE ACESSO ---
 const loginBtn = document.getElementById('btn-login');
 if (loginBtn) {
-    loginBtn.onclick = () => {
-        const email = document.getElementById('admin-email').value;
-        const pass = document.getElementById('admin-password').value;
-        signInWithEmailAndPassword(auth, email, pass)
-            .then(() => { 
-                document.getElementById('login-overlay').style.display = 'none'; 
-                document.getElementById('admin-content').style.display = 'block'; 
+   loginBtn.onclick = async () => {
+    const email = document.getElementById('admin-email').value;
+    const pass = document.getElementById('admin-password').value;
 
-                loadStoreConfigs();
-            })
-            .catch(err => alert("Erro ao acessar: " + err.message));
-    };
+    try {
+        await setPersistence(auth, browserLocalPersistence);
+        await signInWithEmailAndPassword(auth, email, pass);
+    } catch (err) {
+        alert("Erro ao acessar: " + err.message);
+    }
+};
 }
 
 // Função para trocar as abas do Painel
