@@ -68,13 +68,18 @@ window.trocarAbaAdmin = (idAba, btn) => {
 };
 
 // --- 2. CONFIGURAÇÕES DE FRETE E STATUS DA LOJA ---
+let storeLat = null;
+let storeLng = null;
+
 window.getCurrentLocation = () => {
     if ("geolocation" in navigator) {
-        navigator.geolocation.getCurrentPosition(async (position) => {
-            const { latitude, longitude } = position.coords;
-            // Aqui você pode salvar as coordenadas ou usar uma API para converter em texto
-            document.getElementById('store-address').value = `${latitude}, ${longitude}`;
-            alert("Localização capturada com sucesso!");
+        navigator.geolocation.getCurrentPosition((position) => {
+            storeLat = position.coords.latitude;
+            storeLng = position.coords.longitude;
+
+            document.getElementById('store-address').value = `${storeLat}, ${storeLng}`;
+
+            alert("Localização do restaurante capturada com sucesso!");
         }, (error) => {
             alert("Erro ao pegar localização: " + error.message);
         });
@@ -96,6 +101,8 @@ async function loadStoreConfigs() {
             document.getElementById('free-km').value = data.freeKm || '';
             document.getElementById('km-value').value = data.kmValue || '';
             document.getElementById('fixed-delivery').value = data.fixedValue || '';
+            storeLat = data.storeLat || null;
+            storeLng = data.storeLng || null;
             console.log("Configurações carregadas!");
         }
     } catch (error) {
@@ -105,13 +112,15 @@ async function loadStoreConfigs() {
 
 // --- SALVAR CONFIGURAÇÕES ---
 document.getElementById('btn-save-configs').onclick = async () => {
-    const config = {
-        status: document.getElementById('store-status-select').value,
-        address: document.getElementById('store-address').value,
-        freeKm: Number(document.getElementById('free-km').value),
-        kmValue: document.getElementById('km-value').value,
-        fixedValue: document.getElementById('fixed-delivery').value
-    };
+   const config = {
+    status: document.getElementById('store-status-select').value,
+    address: document.getElementById('store-address').value,
+    storeLat: storeLat,
+    storeLng: storeLng,
+    freeKm: Number(document.getElementById('free-km').value),
+    kmValue: document.getElementById('km-value').value,
+    fixedValue: document.getElementById('fixed-delivery').value
+};
 
     try {
         await setDoc(doc(db, "configuracoes", "loja"), config);
