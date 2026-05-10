@@ -535,8 +535,30 @@ window.toggleEntrega = (metodo) => {
     renderCartItems(); // Atualiza o total na tela
 };
 
+function converterNumero(valor) {
+    if (!valor) return 0;
+    return parseFloat(String(valor).replace(',', '.')) || 0;
+}
+
+function calcularDistanciaKm(lat1, lon1, lat2, lon2) {
+    const R = 6371; // raio da Terra em KM
+
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+
+    const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(lat1 * Math.PI / 180) *
+        Math.cos(lat2 * Math.PI / 180) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+    return R * c;
+}
+
 async function calcularFreteAutomatico() {
-    // 1. Busca as configurações que você salvou no ADM
     if (!storeConfigs) {
         const docSnap = await getDoc(doc(db, "configuracoes", "loja"));
         if (docSnap.exists()) storeConfigs = docSnap.data();
@@ -547,36 +569,48 @@ async function calcularFreteAutomatico() {
     const enderecoLoja = document.getElementById('endereco-loja-exibicao');
 
     if (storeConfigs && enderecoLoja) {
-        enderecoLoja.innerText = storeConfigs.address;
+        enderecoLoja.innerText = storeConfigs.address || 'Endereço não informado';
     }
 
-    // Se o cliente não tem endereço no perfil, assume taxa fixa
-    if (!perfil || !perfil.rua || !storeConfigs) {
-        currentDeliveryFee = storeConfigs ? parseFloat(storeConfigs.fixedValue.replace(',', '.')) : 0;
-        if (textoFrete) textoFrete.innerText = `Taxa de Entrega: R$ ${currentDeliveryFee.toFixed(2).replace('.', ',')}`;
+    if (!storeConfigs || !perfil || !perfil.lat || !perfil.lng || !storeConfigs.storeLat || !storeConfigs.storeLng) {
+        currentDeliveryFee = converterNumero(storeConfigs?.fixedValue);
+
+        if (textoFrete) {
+            textoFrete.innerText = `Taxa de Entrega: R$ ${currentDeliveryFee.toFixed(2).replace('.', ',')}`;
+        }
+
+        renderCartItems();
         return;
     }
 
-    // --- LÓGICA DE DISTÂNCIA SIMPLIFICADA ---
-    // Em um sistema real, usaríamos a API do Google Maps aqui. 
-    // Como exemplo, vamos usar uma distância fixa de 5km para validar sua lógica do ADM:
-    const distanciaSimulada = 5; 
-    
-    let taxa = parseFloat(storeConfigs.fixedValue.replace(',', '.'));
+    const distanciaKm = calcularDistanciaKm(
+        Number(storeConfigs.storeLat),
+        Number(storeConfigs.storeLng),
+        Number(perfil.lat),
+        Number(perfil.lng)
+    );
 
-    // Se a distância for maior que o limite de frete grátis do ADM
-    if (distanciaSimulada > storeConfigs.freeKm) {
-        const kmExtra = distanciaSimulada - storeConfigs.freeKm;
-        const valorAdicional = kmExtra * parseFloat(storeConfigs.kmValue.replace(',', '.'));
-        taxa += valorAdicional;
+    const freeKm = converterNumero(storeConfigs.freeKm);
+    const valorPorKm = converterNumero(storeConfigs.kmValue);
+    const taxaFixa = converterNumero(storeConfigs.fixedValue);
+
+    let taxa = 0;
+
+    if (distanciaKm <= freeKm) {
+        taxa = 0;
     } else {
-        taxa = 0; // Dentro do limite de KM grátis
+        const kmExtra = distanciaKm - freeKm;
+        taxa = taxaFixa + (kmExtra * valorPorKm);
     }
 
     currentDeliveryFee = taxa;
+
     if (textoFrete) {
-        textoFrete.innerText = taxa === 0 ? "Entrega Grátis!" : `Taxa de Entrega: R$ ${taxa.toFixed(2).replace('.', ',')}`;
+        textoFrete.innerText = taxa === 0
+            ? `Entrega Grátis! Distância aproximada: ${distanciaKm.toFixed(1)} km`
+            : `Taxa de Entrega: R$ ${taxa.toFixed(2).replace('.', ',')} | Distância aproximada: ${distanciaKm.toFixed(1)} km`;
     }
+
     renderCartItems();
 }
 
