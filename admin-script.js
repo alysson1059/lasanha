@@ -1,6 +1,13 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { getAuth, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { 
+    getAuth, 
+    signInWithEmailAndPassword, 
+    signOut,
+    onAuthStateChanged,
+    setPersistence,
+    browserLocalPersistence
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyDAafuO1j1Wy2-yXytXA4U8bbtmjyUL6UQ",
@@ -14,6 +21,24 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
+
+setPersistence(auth, browserLocalPersistence);
+
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        document.getElementById('login-overlay').style.display = 'none';
+        document.getElementById('admin-content').style.display = 'block';
+        loadStoreConfigs();
+    } else {
+        document.getElementById('login-overlay').style.display = 'flex';
+        document.getElementById('admin-content').style.display = 'none';
+    }
+});
+
+window.logoutAdmin = async () => {
+    await signOut(auth);
+    location.reload();
+};
 
 // --- 1. CONTROLE DE ACESSO ---
 const loginBtn = document.getElementById('btn-login');
