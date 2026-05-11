@@ -179,7 +179,7 @@
     <label style="display: block; font-weight: bold; color: var(--accent); margin-bottom: 8px; font-size: 0.9rem;">
         <i class="fa-solid fa-truck-fast"></i> Como deseja receber?
     </label>
-    <select id="metodo-envio" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd; background: white; cursor: pointer;">
+   <select id="metodo-envio" onchange="toggleEntrega(this.value)" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd; background: white; cursor: pointer;">
         <option value="entrega">Entrega em Casa</option>
         <option value="retirada">Retirar no Local</option>
     </select>
