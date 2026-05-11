@@ -206,7 +206,7 @@
     </div>
 
     <div class="admin-card">
-        <h3><i class="fa-solid fa-plus"></i> Adicionar Venda Externa</h3>
+       <h3><i class="fa-solid fa-plus"></i> Adicionar Total de Venda Externa</h3>
 
         <div class="form-group">
             <label>Plataforma</label>
@@ -220,16 +220,6 @@
         </div>
 
         <div class="form-group">
-            <label>Nome do cliente</label>
-            <input type="text" id="ext-cliente" placeholder="Nome do cliente">
-        </div>
-
-        <div class="form-group">
-            <label>Telefone</label>
-            <input type="text" id="ext-telefone" placeholder="(79) 99999-9999">
-        </div>
-
-        <div class="form-group">
             <label>Forma de pagamento</label>
             <select id="ext-pagamento">
                 <option value="Pix">Pix</option>
@@ -240,13 +230,13 @@
         </div>
 
         <div class="form-group">
-            <label>Valor da venda</label>
+          <label>Total vendido na plataforma</label>
             <input type="text" id="ext-valor" placeholder="0,00">
         </div>
 
         <div class="form-group">
             <label>Observação</label>
-            <textarea id="ext-observacao" rows="2" placeholder="Ex: Pedido recebido fora do site"></textarea>
+           <textarea id="ext-observacao" rows="2" placeholder="Ex: Total vendido no iFood hoje"></textarea>
         </div>
 
         <button class="btn-save" onclick="salvarVendaExterna()" style="background:var(--vinho-logo);">
