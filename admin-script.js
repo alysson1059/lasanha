@@ -1,5 +1,16 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { 
+    getFirestore, 
+    collection, 
+    addDoc, 
+    onSnapshot, 
+    doc, 
+    updateDoc, 
+    deleteDoc, 
+    setDoc, 
+    getDoc,
+    serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { 
     getAuth, 
     signInWithEmailAndPassword, 
@@ -402,5 +413,434 @@ window.cancelarPedidoAdmin = async (id) => {
         }
     }
 };
+
+// ===============================
+// DASHBOARD FINANCEIRO AVANÇADO
+// ===============================
+
+let dadosDashboard = {
+    pedidos: [],
+    vendasExternas: [],
+    pagamentos: {},
+    totalSite: 0,
+    totalExterno: 0,
+    totalGeral: 0,
+    finalizados: 0,
+    cancelados: 0,
+    inicio: null,
+    fim: null
+};
+
+function formatarMoeda(valor) {
+    return `R$ ${Number(valor || 0).toFixed(2).replace('.', ',')}`;
+}
+
+function valorParaNumero(valor) {
+    if (!valor) return 0;
+    return parseFloat(String(valor).replace(/\./g, '').replace(',', '.')) || 0;
+}
+
+function dataFirestoreParaDate(data) {
+    if (!data) return null;
+
+    if (data.seconds) {
+        return new Date(data.seconds * 1000);
+    }
+
+    return new Date(data);
+}
+
+function dataHojeInput() {
+    const hoje = new Date();
+    const ano = hoje.getFullYear();
+    const mes = String(hoje.getMonth() + 1).padStart(2, '0');
+    const dia = String(hoje.getDate()).padStart(2, '0');
+    return `${ano}-${mes}-${dia}`;
+}
+
+function obterPeriodoSelecionado() {
+    const inicialInput = document.getElementById('dash-data-inicial');
+    const finalInput = document.getElementById('dash-data-final');
+
+    if (!inicialInput || !finalInput) return null;
+
+    if (!inicialInput.value) inicialInput.value = dataHojeInput();
+    if (!finalInput.value) finalInput.value = dataHojeInput();
+
+    const inicio = new Date(`${inicialInput.value}T00:00:00`);
+    const fim = new Date(`${finalInput.value}T23:59:59`);
+
+    return { inicio, fim };
+}
+
+function estaNoPeriodo(data, inicio, fim) {
+    if (!data) return false;
+    return data >= inicio && data <= fim;
+}
+
+function registrarPagamento(nome, valor) {
+    const pagamento = nome || 'Não informado';
+
+    if (!dadosDashboard.pagamentos[pagamento]) {
+        dadosDashboard.pagamentos[pagamento] = {
+            quantidade: 0,
+            total: 0
+        };
+    }
+
+    dadosDashboard.pagamentos[pagamento].quantidade++;
+    dadosDashboard.pagamentos[pagamento].total += Number(valor || 0);
+}
+
+window.carregarDashboardFinanceiro = async () => {
+    const periodo = obterPeriodoSelecionado();
+    if (!periodo) return;
+
+    dadosDashboard = {
+        pedidos: [],
+        vendasExternas: [],
+        pagamentos: {},
+        totalSite: 0,
+        totalExterno: 0,
+        totalGeral: 0,
+        finalizados: 0,
+        cancelados: 0,
+        inicio: periodo.inicio,
+        fim: periodo.fim
+    };
+
+    const pedidosSnap = await getDoc(doc(db, "configuracoes", "loja"));
+
+    // Busca pedidos do site
+    onSnapshot(collection(db, "pedidos"), (snapshot) => {
+        processarDashboard(snapshot, null, periodo.inicio, periodo.fim);
+    });
+
+    // Busca vendas externas
+    onSnapshot(collection(db, "vendas_externas"), (snapshot) => {
+        processarDashboard(null, snapshot, periodo.inicio, periodo.fim);
+    });
+};
+
+let ultimoSnapshotPedidos = null;
+let ultimoSnapshotExternas = null;
+
+function processarDashboard(snapshotPedidos, snapshotExternas, inicio, fim) {
+    if (snapshotPedidos) ultimoSnapshotPedidos = snapshotPedidos;
+    if (snapshotExternas) ultimoSnapshotExternas = snapshotExternas;
+
+    dadosDashboard = {
+        pedidos: [],
+        vendasExternas: [],
+        pagamentos: {},
+        totalSite: 0,
+        totalExterno: 0,
+        totalGeral: 0,
+        finalizados: 0,
+        cancelados: 0,
+        inicio,
+        fim
+    };
+
+    if (ultimoSnapshotPedidos) {
+        ultimoSnapshotPedidos.forEach((docSnap) => {
+            const pedido = docSnap.data();
+            const dataPedido = dataFirestoreParaDate(pedido.data);
+
+            if (!estaNoPeriodo(dataPedido, inicio, fim)) return;
+
+            const item = {
+                id: docSnap.id,
+                origem: 'Site',
+                clienteNome: pedido.clienteNome || '',
+                telefoneCliente: pedido.telefoneCliente || '',
+                formaPagamento: pedido.formaPagamento || 'Não informado',
+                total: Number(pedido.total || 0),
+                status: pedido.status || '',
+                resumoItens: pedido.resumoItens || '',
+                data: dataPedido
+            };
+
+            dadosDashboard.pedidos.push(item);
+
+            if (pedido.status === 'finalizado') {
+                dadosDashboard.finalizados++;
+                dadosDashboard.totalSite += Number(pedido.total || 0);
+                registrarPagamento(pedido.formaPagamento, pedido.total);
+            }
+
+            if (pedido.status === 'cancelado') {
+                dadosDashboard.cancelados++;
+            }
+        });
+    }
+
+    if (ultimoSnapshotExternas) {
+        ultimoSnapshotExternas.forEach((docSnap) => {
+            const venda = docSnap.data();
+            const dataVenda = dataFirestoreParaDate(venda.data);
+
+            if (!estaNoPeriodo(dataVenda, inicio, fim)) return;
+
+            const item = {
+                id: docSnap.id,
+                origem: venda.plataforma || 'Venda externa',
+                clienteNome: venda.clienteNome || '',
+                telefoneCliente: venda.telefoneCliente || '',
+                formaPagamento: venda.formaPagamento || 'Não informado',
+                total: Number(venda.total || 0),
+                status: 'venda externa',
+                resumoItens: venda.observacao || '',
+                data: dataVenda
+            };
+
+            dadosDashboard.vendasExternas.push(item);
+            dadosDashboard.totalExterno += Number(venda.total || 0);
+            registrarPagamento(venda.formaPagamento, venda.total);
+        });
+    }
+
+    dadosDashboard.totalGeral = dadosDashboard.totalSite + dadosDashboard.totalExterno;
+
+    atualizarTelaDashboard();
+}
+
+function atualizarTelaDashboard() {
+    const elFinalizados = document.getElementById('dash-finalizados');
+    const elCancelados = document.getElementById('dash-cancelados');
+    const elSite = document.getElementById('dash-vendas-site');
+    const elExternas = document.getElementById('dash-vendas-externas');
+    const elTotal = document.getElementById('dash-total-geral');
+    const elPagamentos = document.getElementById('dash-pagamentos');
+
+    if (elFinalizados) elFinalizados.innerText = dadosDashboard.finalizados;
+    if (elCancelados) elCancelados.innerText = dadosDashboard.cancelados;
+    if (elSite) elSite.innerText = formatarMoeda(dadosDashboard.totalSite);
+    if (elExternas) elExternas.innerText = formatarMoeda(dadosDashboard.totalExterno);
+    if (elTotal) elTotal.innerText = formatarMoeda(dadosDashboard.totalGeral);
+
+    if (elPagamentos) {
+        const pagamentos = Object.entries(dadosDashboard.pagamentos);
+
+        if (pagamentos.length === 0) {
+            elPagamentos.innerHTML = '<p style="color:#999;">Nenhum pagamento encontrado.</p>';
+        } else {
+            elPagamentos.innerHTML = pagamentos.map(([nome, info]) => `
+                <div style="display:flex; justify-content:space-between; border-bottom:1px solid #eee; padding:8px 0;">
+                    <span><strong>${nome}</strong> (${info.quantidade})</span>
+                    <span>${formatarMoeda(info.total)}</span>
+                </div>
+            `).join('');
+        }
+    }
+
+    atualizarSugestoesClientes();
+}
+
+window.salvarVendaExterna = async () => {
+    const plataforma = document.getElementById('ext-plataforma').value;
+    const clienteNome = document.getElementById('ext-cliente').value.trim();
+    const telefoneCliente = document.getElementById('ext-telefone').value.trim();
+    const formaPagamento = document.getElementById('ext-pagamento').value;
+    const total = valorParaNumero(document.getElementById('ext-valor').value);
+    const observacao = document.getElementById('ext-observacao').value.trim();
+
+    if (!clienteNome) {
+        alert("Informe o nome do cliente.");
+        return;
+    }
+
+    if (total <= 0) {
+        alert("Informe um valor válido.");
+        return;
+    }
+
+    try {
+        await addDoc(collection(db, "vendas_externas"), {
+            plataforma,
+            clienteNome,
+            telefoneCliente,
+            formaPagamento,
+            total,
+            observacao,
+            data: serverTimestamp()
+        });
+
+        document.getElementById('ext-cliente').value = '';
+        document.getElementById('ext-telefone').value = '';
+        document.getElementById('ext-valor').value = '';
+        document.getElementById('ext-observacao').value = '';
+
+        alert("Venda externa salva com sucesso!");
+        carregarDashboardFinanceiro();
+
+    } catch (error) {
+        alert("Erro ao salvar venda externa: " + error.message);
+    }
+};
+
+function todasAsVendasDashboard() {
+    return [
+        ...dadosDashboard.pedidos,
+        ...dadosDashboard.vendasExternas
+    ].sort((a, b) => b.data - a.data);
+}
+
+function atualizarSugestoesClientes() {
+    const datalist = document.getElementById('sugestoes-clientes');
+    if (!datalist) return;
+
+    const vendas = todasAsVendasDashboard();
+    const sugestoes = new Set();
+
+    vendas.forEach(venda => {
+        if (venda.clienteNome) sugestoes.add(venda.clienteNome);
+        if (venda.telefoneCliente) sugestoes.add(venda.telefoneCliente);
+    });
+
+    datalist.innerHTML = Array.from(sugestoes).map(item => `
+        <option value="${item}">
+    `).join('');
+}
+
+document.addEventListener('input', (e) => {
+    if (e.target.id === 'dash-busca') {
+        pesquisarVendaDashboard(e.target.value);
+    }
+});
+
+function pesquisarVendaDashboard(termo) {
+    const container = document.getElementById('dash-resultados-busca');
+    if (!container) return;
+
+    const busca = termo.trim().toLowerCase();
+
+    if (!busca) {
+        container.innerHTML = '<p style="color:#999;">Digite para pesquisar.</p>';
+        return;
+    }
+
+    const resultados = todasAsVendasDashboard().filter(venda => {
+        return (
+            venda.clienteNome.toLowerCase().includes(busca) ||
+            venda.telefoneCliente.toLowerCase().includes(busca)
+        );
+    });
+
+    if (resultados.length === 0) {
+        container.innerHTML = '<p style="color:#999;">Nenhuma venda encontrada.</p>';
+        return;
+    }
+
+    container.innerHTML = resultados.map(venda => `
+        <div style="border:1px solid #eee; border-radius:8px; padding:10px; margin-bottom:8px;">
+            <strong>${venda.clienteNome || 'Cliente não informado'}</strong><br>
+            <small>${venda.telefoneCliente || 'Sem telefone'} | ${venda.origem}</small><br>
+            <small>${venda.data ? venda.data.toLocaleString() : 'Sem data'}</small>
+            <p style="margin:6px 0;">${venda.resumoItens || 'Sem descrição'}</p>
+            <strong>${formatarMoeda(venda.total)}</strong>
+            <span style="float:right; color:${venda.status === 'cancelado' ? '#e74c3c' : '#5D7D2B'};">
+                ${venda.status}
+            </span>
+        </div>
+    `).join('');
+}
+
+window.baixarRelatorioPDF = () => {
+    const { jsPDF } = window.jspdf;
+
+    const pdf = new jsPDF();
+    const vendas = todasAsVendasDashboard();
+
+    let y = 15;
+
+    pdf.setFontSize(18);
+    pdf.text("Casa da Lasanha", 14, y);
+
+    y += 8;
+    pdf.setFontSize(13);
+    pdf.text("Relatório Financeiro", 14, y);
+
+    y += 10;
+    pdf.setFontSize(10);
+    pdf.text(`Período: ${dadosDashboard.inicio?.toLocaleDateString() || '-'} até ${dadosDashboard.fim?.toLocaleDateString() || '-'}`, 14, y);
+
+    y += 10;
+    pdf.setFontSize(12);
+    pdf.text(`Pedidos finalizados: ${dadosDashboard.finalizados}`, 14, y);
+    y += 7;
+    pdf.text(`Pedidos cancelados: ${dadosDashboard.cancelados}`, 14, y);
+    y += 7;
+    pdf.text(`Vendas do site: ${formatarMoeda(dadosDashboard.totalSite)}`, 14, y);
+    y += 7;
+    pdf.text(`Vendas externas: ${formatarMoeda(dadosDashboard.totalExterno)}`, 14, y);
+    y += 7;
+    pdf.text(`Total geral: ${formatarMoeda(dadosDashboard.totalGeral)}`, 14, y);
+
+    y += 12;
+    pdf.setFontSize(13);
+    pdf.text("Formas de pagamento", 14, y);
+
+    y += 8;
+    pdf.setFontSize(10);
+
+    Object.entries(dadosDashboard.pagamentos).forEach(([nome, info]) => {
+        pdf.text(`${nome}: ${info.quantidade} venda(s) - ${formatarMoeda(info.total)}`, 14, y);
+        y += 6;
+    });
+
+    y += 8;
+    pdf.setFontSize(13);
+    pdf.text("Detalhamento de vendas", 14, y);
+
+    y += 8;
+    pdf.setFontSize(9);
+
+    if (vendas.length === 0) {
+        pdf.text("Nenhuma venda encontrada no período.", 14, y);
+    }
+
+    vendas.forEach((venda) => {
+        if (y > 270) {
+            pdf.addPage();
+            y = 15;
+        }
+
+        pdf.setFontSize(9);
+        pdf.text(`Cliente: ${venda.clienteNome || 'Não informado'}`, 14, y);
+        y += 5;
+        pdf.text(`Telefone: ${venda.telefoneCliente || 'Não informado'}`, 14, y);
+        y += 5;
+        pdf.text(`Origem: ${venda.origem} | Status: ${venda.status} | Pagamento: ${venda.formaPagamento}`, 14, y);
+        y += 5;
+        pdf.text(`Data: ${venda.data ? venda.data.toLocaleString() : '-'}`, 14, y);
+        y += 5;
+        pdf.text(`Total: ${formatarMoeda(venda.total)}`, 14, y);
+        y += 5;
+
+        const texto = venda.resumoItens || 'Sem detalhes';
+        const linhas = pdf.splitTextToSize(`Detalhes: ${texto}`, 180);
+        pdf.text(linhas, 14, y);
+        y += linhas.length * 5;
+
+        y += 4;
+        pdf.line(14, y, 196, y);
+        y += 6;
+    });
+
+    pdf.save("relatorio-casa-da-lasanha.pdf");
+};
+
+// Inicia o dashboard com o dia atual
+document.addEventListener('DOMContentLoaded', () => {
+    const inicial = document.getElementById('dash-data-inicial');
+    const final = document.getElementById('dash-data-final');
+
+    if (inicial && final) {
+        inicial.value = dataHojeInput();
+        final.value = dataHojeInput();
+        carregarDashboardFinanceiro();
+    }
+});
 
 loadStoreConfigs();
