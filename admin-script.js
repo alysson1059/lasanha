@@ -319,7 +319,7 @@ onSnapshot(collection(db, "pedidos"), (snapshot) => {
         }
 
         // Não mostra pedidos finalizados ou cancelados na lista ativa de trabalho
-        if (pedido.status === 'finalizado' || pedido.status === 'cancelado') return;
+       if (pedido.status === 'finalizado') return;
 
         const dataPedido = pedido.data ? new Date(pedido.data.seconds * 1000).toLocaleTimeString() : '...';
 
@@ -337,7 +337,16 @@ onSnapshot(collection(db, "pedidos"), (snapshot) => {
             <p style="font-size:0.9rem;">${pedido.resumoItens}</p>
             <p><strong>Total: R$ ${pedido.total.toFixed(2)}</strong></p>
            <div id="acoes-${id}">   
-    ${renderBotaoStatus(id, pedido.status, pedido.metodo)}
+   ${renderBotaoStatus(id, pedido.status, pedido.metodo)}
+${pedido.status !== 'cancelado' ? `
+    <button onclick="cancelarPedidoAdmin('${id}')" class="btn-save" style="background:#e74c3c; padding:8px; margin-top:8px;">
+        Cancelar Pedido
+    </button>
+` : `
+    <p style="color:#e74c3c; font-weight:bold; margin-top:8px;">
+        Pedido cancelado
+    </p>
+`}
 </div>
         `;
         listaPedidos.prepend(card);
@@ -376,6 +385,21 @@ window.alterarStatusPedido = async (id, novoStatus) => {
         await updateDoc(doc(db, "pedidos", id), { status: novoStatus });
     } catch (error) {
         alert("Erro ao atualizar status: " + error.message);
+    }
+};
+
+window.cancelarPedidoAdmin = async (id) => {
+    if (confirm("Deseja realmente cancelar este pedido?")) {
+        try {
+            await updateDoc(doc(db, "pedidos", id), { 
+                status: "cancelado",
+                canceladoPor: "admin"
+            });
+
+            alert("Pedido cancelado com sucesso!");
+        } catch (error) {
+            alert("Erro ao cancelar pedido: " + error.message);
+        }
     }
 };
 
