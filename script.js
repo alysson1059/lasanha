@@ -554,7 +554,7 @@ window.toggleEntrega = async (metodo) => {
         if (infoEntrega) infoEntrega.style.display = 'none';
 
         if (enderecoLoja) {
-            enderecoLoja.innerText = storeConfigs?.address || 'Endereço da loja não cadastrado';
+           enderecoLoja.innerText = storeConfigs?.storeVisibleAddress || 'Endereço da loja não cadastrado';
         }
 
         renderCartItems();
@@ -603,7 +603,7 @@ async function calcularFreteAutomatico() {
     const enderecoLoja = document.getElementById('endereco-loja-exibicao');
 
     if (storeConfigs && enderecoLoja) {
-        enderecoLoja.innerText = storeConfigs.address || 'Endereço não informado';
+       enderecoLoja.innerText = storeConfigs.storeVisibleAddress || 'Endereço não informado';
     }
 
     if (!storeConfigs || !perfil || !perfil.lat || !perfil.lng || !storeConfigs.storeLat || !storeConfigs.storeLng) {
