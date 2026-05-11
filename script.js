@@ -352,14 +352,9 @@ window.toggleCart = () => {
     if (modal) {
         modal.style.display = (modal.style.display === 'block') ? 'none' : 'block';
 
-        const metodoEnvio = document.getElementById('metodo-envio')?.value;
+        const metodoEnvio = document.getElementById('metodo-envio')?.value || 'entrega';
 
-        if (metodoEnvio === 'entrega') {
-            calcularFreteAutomatico();
-        } else {
-            currentDeliveryFee = 0;
-            renderCartItems();
-        }
+        toggleEntrega(metodoEnvio);
     }
 };
 
@@ -540,20 +535,38 @@ window.maskMoney = (input) => {
     input.value = value;
 };
 
-window.toggleEntrega = (metodo) => {
+window.toggleEntrega = async (metodo) => {
     const infoRetirada = document.getElementById('info-retirada');
     const infoEntrega = document.getElementById('info-entrega');
-    
-    if (metodo === 'retirada') {
-        infoRetirada.style.display = 'block';
-        infoEntrega.style.display = 'none';
-        currentDeliveryFee = 0; // Retirada não tem frete
-    } else {
-        infoRetirada.style.display = 'none';
-        infoEntrega.style.display = 'block';
-        calcularFreteAutomatico(); // Calcula o frete para entrega
+    const enderecoLoja = document.getElementById('endereco-loja-exibicao');
+
+    if (!storeConfigs) {
+        const docSnap = await getDoc(doc(db, "configuracoes", "loja"));
+        if (docSnap.exists()) {
+            storeConfigs = docSnap.data();
+        }
     }
-    renderCartItems(); // Atualiza o total na tela
+
+    if (metodo === 'retirada') {
+        currentDeliveryFee = 0;
+
+        if (infoRetirada) infoRetirada.style.display = 'block';
+        if (infoEntrega) infoEntrega.style.display = 'none';
+
+        if (enderecoLoja) {
+            enderecoLoja.innerText = storeConfigs?.address || 'Endereço da loja não cadastrado';
+        }
+
+        renderCartItems();
+        return;
+    }
+
+    if (metodo === 'entrega') {
+        if (infoRetirada) infoRetirada.style.display = 'none';
+        if (infoEntrega) infoEntrega.style.display = 'block';
+
+        calcularFreteAutomatico();
+    }
 };
 
 function converterNumero(valor) {
