@@ -98,6 +98,7 @@ async function loadStoreConfigs() {
             const data = docSnap.data();
             document.getElementById('store-status-select').value = data.status || 'closed';
             document.getElementById('store-address').value = data.address || '';
+            document.getElementById('store-visible-address').value = data.storeVisibleAddress || '';
             document.getElementById('free-km').value = data.freeKm || '';
             document.getElementById('km-value').value = data.kmValue || '';
             document.getElementById('fixed-delivery').value = data.fixedValue || '';
@@ -139,15 +140,21 @@ if (enderecoTexto.includes(',')) {
     console.log("NOVA LNG:", storeLng);
 }
 
-    const config = {
-        status: document.getElementById('store-status-select').value,
-        address: enderecoDigitado,
-        storeLat: storeLat,
-        storeLng: storeLng,
-        freeKm: Number(document.getElementById('free-km').value),
-        kmValue: document.getElementById('km-value').value,
-        fixedValue: document.getElementById('fixed-delivery').value
-    };
+  const config = {
+    status: document.getElementById('store-status-select').value,
+
+    // GPS usado apenas para cálculo do frete
+    address: enderecoDigitado,
+    storeLat: storeLat,
+    storeLng: storeLng,
+
+    // Endereço bonito que aparece para o cliente
+    storeVisibleAddress: document.getElementById('store-visible-address').value.trim(),
+
+    freeKm: Number(document.getElementById('free-km').value),
+    kmValue: document.getElementById('km-value').value,
+    fixedValue: document.getElementById('fixed-delivery').value
+};
 
     try {
         await setDoc(doc(db, "configuracoes", "loja"), config);
