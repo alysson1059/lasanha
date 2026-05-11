@@ -89,10 +89,20 @@ function loadProducts(categoryFilter = "Promoções") {
                           <p style="font-size: 0.85rem; color: #777; margin: 5px 0;">${product.description || 'Saborosa e feita com ingredientes selecionados.'}</p>
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
                                 <div>
-                                   ${product.onSale ? `<small style="text-decoration:line-through; color:red">R$ ${(Number(product.price) / (1 - (Number(product.discount)/100))).toFixed(2)}</small><br>` : ''}
-                                    <span style="font-weight: bold; color: var(--vinho-logo);">R$ ${parseFloat(product.price).toFixed(2)}</span>
+                                  ${product.onSale ? `
+    <small style="text-decoration:line-through; color:red">
+        R$ ${Number(product.price).toFixed(2)}
+    </small><br>
+    <span style="font-weight: bold; color: var(--vinho-logo);">
+        R$ ${(Number(product.price) - (Number(product.price) * Number(product.discount) / 100)).toFixed(2)}
+    </span>
+` : `
+    <span style="font-weight: bold; color: var(--vinho-logo);">
+        R$ ${Number(product.price).toFixed(2)}
+    </span>
+`}
                                 </div>
-                                <button onclick="addToCart('${id}', '${product.name}', ${product.price})" 
+                              <button onclick="addToCart('${id}', '${product.name}', ${product.onSale ? (Number(product.price) - (Number(product.price) * Number(product.discount) / 100)) : product.price})"
                                     style="background: var(--accent); color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer;">
                                     <i class="fa-solid fa-plus"></i>
                                 </button>
