@@ -640,7 +640,6 @@ function atualizarTelaDashboard() {
 
 window.salvarVendaExterna = async () => {
     const plataforma = document.getElementById('ext-plataforma').value;
-    const formaPagamento = document.getElementById('ext-pagamento').value;
     const totalNovo = valorParaNumero(document.getElementById('ext-valor').value);
     const observacao = document.getElementById('ext-observacao').value.trim();
 
@@ -654,7 +653,7 @@ window.salvarVendaExterna = async () => {
             plataforma,
             clienteNome: `Total ${plataforma}`,
             telefoneCliente: '',
-            formaPagamento,
+           formaPagamento: "Venda externa",
             total: totalNovo,
             observacao: observacao || `Total vendido na plataforma ${plataforma}`,
             tipo: "total_plataforma",
