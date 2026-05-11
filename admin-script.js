@@ -582,17 +582,17 @@ function processarDashboard(snapshotPedidos, snapshotExternas, inicio, fim) {
 
             if (!estaNoPeriodo(dataVenda, inicio, fim)) return;
 
-            const item = {
-                id: docSnap.id,
-                origem: venda.plataforma || 'Venda externa',
-                clienteNome: venda.clienteNome || '',
-                telefoneCliente: venda.telefoneCliente || '',
-                formaPagamento: venda.formaPagamento || 'Não informado',
-                total: Number(venda.total || 0),
-                status: 'venda externa',
-                resumoItens: venda.observacao || '',
-                data: dataVenda
-            };
+          const item = {
+    id: docSnap.id,
+    origem: venda.plataforma || 'Venda externa',
+    clienteNome: venda.clienteNome || `Total ${venda.plataforma || 'Venda externa'}`,
+    telefoneCliente: venda.telefoneCliente || '',
+    formaPagamento: venda.formaPagamento || 'Não informado',
+    total: Number(venda.total || 0),
+    status: 'total externo',
+    resumoItens: venda.observacao || `Total vendido em ${venda.plataforma || 'plataforma externa'}`,
+    data: dataVenda
+};
 
             dadosDashboard.vendasExternas.push(item);
             dadosDashboard.totalExterno += Number(venda.total || 0);
@@ -639,18 +639,11 @@ function atualizarTelaDashboard() {
 
 window.salvarVendaExterna = async () => {
     const plataforma = document.getElementById('ext-plataforma').value;
-    const clienteNome = document.getElementById('ext-cliente').value.trim();
-    const telefoneCliente = document.getElementById('ext-telefone').value.trim();
     const formaPagamento = document.getElementById('ext-pagamento').value;
-    const total = valorParaNumero(document.getElementById('ext-valor').value);
+    const totalNovo = valorParaNumero(document.getElementById('ext-valor').value);
     const observacao = document.getElementById('ext-observacao').value.trim();
 
-    if (!clienteNome) {
-        alert("Informe o nome do cliente.");
-        return;
-    }
-
-    if (total <= 0) {
+    if (totalNovo <= 0) {
         alert("Informe um valor válido.");
         return;
     }
@@ -658,20 +651,19 @@ window.salvarVendaExterna = async () => {
     try {
         await addDoc(collection(db, "vendas_externas"), {
             plataforma,
-            clienteNome,
-            telefoneCliente,
+            clienteNome: `Total ${plataforma}`,
+            telefoneCliente: '',
             formaPagamento,
-            total,
-            observacao,
+            total: totalNovo,
+            observacao: observacao || `Total vendido na plataforma ${plataforma}`,
+            tipo: "total_plataforma",
             data: serverTimestamp()
         });
 
-        document.getElementById('ext-cliente').value = '';
-        document.getElementById('ext-telefone').value = '';
         document.getElementById('ext-valor').value = '';
         document.getElementById('ext-observacao').value = '';
 
-        alert("Venda externa salva com sucesso!");
+        alert("Total da venda externa salvo com sucesso!");
         carregarDashboardFinanceiro();
 
     } catch (error) {
