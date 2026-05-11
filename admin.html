@@ -151,18 +151,129 @@
         </div>
 
         <!-- ABA 1: DASHBOARD (NOVA) -->
-        <div id="aba-dashboard" class="secao-admin">
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
-                <div class="admin-card" style="text-align: center; border-bottom: 4px solid var(--accent);">
-                    <small>Vendas Finalizadas</small>
-                    <h2 id="dash-faturamento" style="margin: 5px 0; color: var(--accent);">R$ 0,00</h2>
-                </div>
-                <div class="admin-card" style="text-align: center; border-bottom: 4px solid var(--vinho-logo);">
-                    <small>Total de Pedidos</small>
-                    <h2 id="dash-qtd-pedidos" style="margin: 5px 0; color: var(--vinho-logo);">0</h2>
-                </div>
+      <div id="aba-dashboard" class="secao-admin">
+    <div class="admin-card">
+        <h3><i class="fa-solid fa-chart-line"></i> Dashboard Financeiro</h3>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <div class="form-group">
+                <label>Data inicial</label>
+                <input type="date" id="dash-data-inicial">
+            </div>
+            <div class="form-group">
+                <label>Data final</label>
+                <input type="date" id="dash-data-final">
             </div>
         </div>
+
+        <button class="btn-save" onclick="carregarDashboardFinanceiro()" style="background:var(--accent);">
+            Filtrar Dados
+        </button>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:20px;">
+        <div class="admin-card" style="text-align:center;">
+            <small>Pedidos Finalizados</small>
+            <h2 id="dash-finalizados">0</h2>
+        </div>
+
+        <div class="admin-card" style="text-align:center;">
+            <small>Pedidos Cancelados</small>
+            <h2 id="dash-cancelados">0</h2>
+        </div>
+
+        <div class="admin-card" style="text-align:center;">
+            <small>Vendas do Site</small>
+            <h2 id="dash-vendas-site">R$ 0,00</h2>
+        </div>
+
+        <div class="admin-card" style="text-align:center;">
+            <small>Vendas Externas</small>
+            <h2 id="dash-vendas-externas">R$ 0,00</h2>
+        </div>
+
+        <div class="admin-card" style="text-align:center; grid-column:span 2; border-bottom:4px solid var(--accent);">
+            <small>Total Geral</small>
+            <h2 id="dash-total-geral" style="color:var(--accent);">R$ 0,00</h2>
+        </div>
+    </div>
+
+    <div class="admin-card">
+        <h3><i class="fa-solid fa-money-bill"></i> Formas de Pagamento</h3>
+        <div id="dash-pagamentos">
+            <p style="color:#999;">Nenhum pagamento encontrado.</p>
+        </div>
+    </div>
+
+    <div class="admin-card">
+        <h3><i class="fa-solid fa-plus"></i> Adicionar Venda Externa</h3>
+
+        <div class="form-group">
+            <label>Plataforma</label>
+            <select id="ext-plataforma">
+                <option value="iFood">iFood</option>
+                <option value="99 Food">99 Food</option>
+                <option value="Compre Sem Fila">Compre Sem Fila</option>
+                <option value="WhatsApp">WhatsApp</option>
+                <option value="Outro">Outro</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Nome do cliente</label>
+            <input type="text" id="ext-cliente" placeholder="Nome do cliente">
+        </div>
+
+        <div class="form-group">
+            <label>Telefone</label>
+            <input type="text" id="ext-telefone" placeholder="(79) 99999-9999">
+        </div>
+
+        <div class="form-group">
+            <label>Forma de pagamento</label>
+            <select id="ext-pagamento">
+                <option value="Pix">Pix</option>
+                <option value="Dinheiro">Dinheiro</option>
+                <option value="Cartão de Débito">Cartão de Débito</option>
+                <option value="Cartão de Crédito">Cartão de Crédito</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Valor da venda</label>
+            <input type="text" id="ext-valor" placeholder="0,00">
+        </div>
+
+        <div class="form-group">
+            <label>Observação</label>
+            <textarea id="ext-observacao" rows="2" placeholder="Ex: Pedido recebido fora do site"></textarea>
+        </div>
+
+        <button class="btn-save" onclick="salvarVendaExterna()" style="background:var(--vinho-logo);">
+            Salvar Venda Externa
+        </button>
+    </div>
+
+    <div class="admin-card">
+        <h3><i class="fa-solid fa-search"></i> Pesquisar Venda</h3>
+
+        <div class="form-group">
+            <label>Buscar por nome ou telefone</label>
+            <input type="text" id="dash-busca" list="sugestoes-clientes" placeholder="Digite nome ou telefone">
+            <datalist id="sugestoes-clientes"></datalist>
+        </div>
+
+        <div id="dash-resultados-busca">
+            <p style="color:#999;">Digite para pesquisar.</p>
+        </div>
+    </div>
+
+    <div class="admin-card">
+        <button class="btn-save" onclick="baixarRelatorioPDF()" style="background:#222;">
+            <i class="fa-solid fa-file-pdf"></i> Baixar Relatório PDF
+        </button>
+    </div>
+</div>
 
         <!-- ABA 2: PEDIDOS (NOVA) -->
         <div id="aba-pedidos" class="secao-admin" style="display: none;">
@@ -268,6 +379,8 @@
         </div>
 
     </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <script type="module" src="admin-script.js"></script>
 </body>
