@@ -33,6 +33,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
+const MAPBOX_TOKEN = "pk.eyJ1IjoibWFub2tlZmYiLCJhIjoiY21wYTY1eHpkMHZkNjJ0b280b2xyYmZmeiJ9.jpj9V94TBtGVzghcmAQu4A";
 
 async function iniciarAuthAdmin() {
     await setPersistence(auth, browserLocalPersistence);
@@ -83,23 +84,60 @@ window.trocarAbaAdmin = (idAba, btn) => {
 let storeLat = null;
 let storeLng = null;
 
-window.getCurrentLocation = () => {
-    if ("geolocation" in navigator) {
-        navigator.geolocation.getCurrentPosition((position) => {
-            storeLat = position.coords.latitude;
-            storeLng = position.coords.longitude;
+window.getCurrentLocation = async () => {
 
-            document.getElementById('store-address').value = `${storeLat}, ${storeLng}`;
+    const endereco = document.getElementById('store-address')
+    .value.trim();
 
-            alert("Localização do restaurante capturada com sucesso!");
-        }, (error) => {
-            alert("Erro ao pegar localização: " + error.message);
-        });
-    } else {
-        alert("Geolocalização não suportada pelo navegador.");
+    if (!endereco) {
+        alert("Digite o endereço da loja.");
+        return;
+    }
+
+    try {
+
+        const url =
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${
+            encodeURIComponent(endereco)
+        }.json?country=BR&language=pt&access_token=${MAPBOX_TOKEN}`;
+
+        const resposta = await fetch(url);
+
+        const dados = await resposta.json();
+
+        if (
+            dados.features &&
+            dados.features.length > 0
+        ) {
+
+            storeLng =
+            dados.features[0].center[0];
+
+            storeLat =
+            dados.features[0].center[1];
+
+            alert(
+            "Endereço validado com sucesso!"
+            );
+
+        } else {
+
+            alert(
+            "Endereço não encontrado."
+            );
+
+        }
+
+    } catch(e){
+
+        console.error(e);
+
+        alert(
+        "Erro ao localizar endereço."
+        );
+
     }
 };
-
 // --- CARREGAR CONFIGURAÇÕES AO INICIAR ---
 async function loadStoreConfigs() {
     try {
@@ -125,31 +163,17 @@ async function loadStoreConfigs() {
 
 // --- SALVAR CONFIGURAÇÕES ---
 document.getElementById('btn-save-configs').onclick = async () => {
-    const enderecoDigitado = document.getElementById('store-address').value.trim();
+   const enderecoDigitado =
+document.getElementById('store-address')
+.value.trim();
 
-    // Se o endereço estiver no formato: -10.855102, -37.126385
-    if (enderecoDigitado.includes(',')) {
-        const partes = enderecoDigitado.split(',');
+await getCurrentLocation();
 
-        const latDigitada = parseFloat(partes[0].trim());
-        const lngDigitada = parseFloat(partes[1].trim());
-
-        if (!isNaN(latDigitada) && !isNaN(lngDigitada)) {
-            storeLat = latDigitada;
-            storeLng = lngDigitada;
-        }
-    }
-
-    const enderecoTexto = document.getElementById('store-address').value.trim();
-
-if (enderecoTexto.includes(',')) {
-    const partes = enderecoTexto.split(',');
-
-    storeLat = parseFloat(partes[0].trim());
-    storeLng = parseFloat(partes[1].trim());
-
-    console.log("NOVA LAT:", storeLat);
-    console.log("NOVA LNG:", storeLng);
+if (!storeLat || !storeLng) {
+    alert(
+    "Endereço inválido."
+    );
+    return;
 }
 
   const config = {
