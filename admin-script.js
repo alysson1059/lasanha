@@ -346,54 +346,59 @@ window.deleteItem = async (id) => {
 };
 
 // --- 6. GESTÃO DE PEDIDOS EM TEMPO REAL E DASHBOARD ---
+// --- 6. GESTÃO DE PEDIDOS EM TEMPO REAL E DASHBOARD ---
 onSnapshot(collection(db, "pedidos"), (snapshot) => {
     const listaPedidos = document.getElementById('lista-pedidos-admin');
+    if (!listaPedidos) return;
 
     snapshot.docChanges().forEach((change) => {
-    const pedido = change.doc.data();
-    const id = change.doc.id;
+        const pedido = change.doc.data();
+        const id = change.doc.id;
 
-    if (change.type === "added" && pedido.status === "pendente") {
-        if (!primeiraCargaPedidos && !pedidosConhecidos.has(id)) {
-            tocarSomNovoPedido();
-            mostrarNotificacaoNovoPedido(pedido);
+        if (change.type === "added" && pedido.status === "pendente") {
+            if (!primeiraCargaPedidos && !pedidosConhecidos.has(id)) {
+                tocarSomNovoPedido();
+                mostrarNotificacaoNovoPedido(pedido);
 
-            if ("vibrate" in navigator) {
-                navigator.vibrate([500, 300, 500, 300, 500]);
+                if ("vibrate" in navigator) {
+                    navigator.vibrate([500, 300, 500, 300, 500]);
+                }
             }
+
+            pedidosConhecidos.add(id);
         }
+    });
 
-        pedidosConhecidos.add(id);
-    }
-});
-
-primeiraCargaPedidos = false;
-    const faturamentoElement = document.getElementById('dash-faturamento');
-    const qtdPedidosElement = document.getElementById('dash-qtd-pedidos');
-    
-    if (!listaPedidos) return;
+    primeiraCargaPedidos = false;
 
     let faturamentoTotal = 0;
     let totalPedidos = 0;
+    let existePedidoPendente = false;
+
     listaPedidos.innerHTML = '';
 
     snapshot.forEach((docSnap) => {
         const pedido = docSnap.data();
         const id = docSnap.id;
-        totalPedidos++;
 
-        // Soma faturamento apenas de pedidos finalizados
         if (pedido.status === 'finalizado') {
-            faturamentoTotal += pedido.total;
+            faturamentoTotal += Number(pedido.total || 0);
+            return;
         }
 
-        // Não mostra pedidos finalizados ou cancelados na lista ativa de trabalho
-       if (pedido.status === 'finalizado') return;
+        if (pedido.status === 'pendente') {
+            existePedidoPendente = true;
+        }
 
-        const dataPedido = pedido.data ? new Date(pedido.data.seconds * 1000).toLocaleTimeString() : '...';
+        totalPedidos++;
+
+        const dataPedido = pedido.data
+            ? new Date(pedido.data.seconds * 1000).toLocaleTimeString()
+            : '...';
 
         const card = document.createElement('div');
         card.className = `pedido-admin-card status-${pedido.status}`;
+
         card.innerHTML = `
             <div style="display:flex; justify-content:space-between; align-items:flex-start;">
                 <div>
@@ -402,39 +407,33 @@ primeiraCargaPedidos = false;
                 </div>
                 <span class="badge-status">${pedido.status}</span>
             </div>
+
             <hr style="border:0; border-top:1px solid #eee; margin:10px 0;">
+
             <p style="font-size:0.9rem;">${pedido.resumoItens}</p>
-            <p><strong>Total: R$ ${pedido.total.toFixed(2)}</strong></p>
-           <div id="acoes-${id}">   
-   ${renderBotaoStatus(id, pedido.status, pedido.metodo)}
-${pedido.status !== 'cancelado' ? `
-    <button onclick="cancelarPedidoAdmin('${id}')" class="btn-save" style="background:#e74c3c; padding:8px; margin-top:8px;">
-        Cancelar Pedido
-    </button>
-` : `
-    <p style="color:#e74c3c; font-weight:bold; margin-top:8px;">
-        Pedido cancelado
-    </p>
-`}
-</div>
+            <p><strong>Total: R$ ${Number(pedido.total || 0).toFixed(2)}</strong></p>
+
+            <div id="acoes-${id}">
+                ${renderBotaoStatus(id, pedido.status, pedido.metodo)}
+
+                ${pedido.status !== 'cancelado' ? `
+                    <button onclick="cancelarPedidoAdmin('${id}')" class="btn-save" style="background:#e74c3c; padding:8px; margin-top:8px;">
+                        Cancelar Pedido
+                    </button>
+                ` : `
+                    <p style="color:#e74c3c; font-weight:bold; margin-top:8px;">
+                        Pedido cancelado
+                    </p>
+                `}
+            </div>
         `;
+
         listaPedidos.prepend(card);
     });
 
-    // Atualiza Dashboard
-    if (faturamentoElement) faturamentoElement.innerText = `R$ ${faturamentoTotal.toFixed(2)}`;
-    if (qtdPedidosElement) qtdPedidosElement.innerText = totalPedidos;
-
-    const existePedidoPendente = snapshot.docs.some((docSnap) => {
-    const pedido = docSnap.data();
-
-    return pedido.status === "pendente";
-});
-
-if (!existePedidoPendente && alarmePedidoAtivo) {
-    pararSomNovoPedido();
-}
-    
+    if (!existePedidoPendente && alarmePedidoAtivo) {
+        pararSomNovoPedido();
+    }
 });
 
 
