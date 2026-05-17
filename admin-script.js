@@ -348,6 +348,26 @@ window.deleteItem = async (id) => {
 // --- 6. GESTÃO DE PEDIDOS EM TEMPO REAL E DASHBOARD ---
 onSnapshot(collection(db, "pedidos"), (snapshot) => {
     const listaPedidos = document.getElementById('lista-pedidos-admin');
+
+    snapshot.docChanges().forEach((change) => {
+    const pedido = change.doc.data();
+    const id = change.doc.id;
+
+    if (change.type === "added" && pedido.status === "pendente") {
+        if (!primeiraCargaPedidos && !pedidosConhecidos.has(id)) {
+            tocarSomNovoPedido();
+            mostrarNotificacaoNovoPedido(pedido);
+
+            if ("vibrate" in navigator) {
+                navigator.vibrate([500, 300, 500, 300, 500]);
+            }
+        }
+
+        pedidosConhecidos.add(id);
+    }
+});
+
+primeiraCargaPedidos = false;
     const faturamentoElement = document.getElementById('dash-faturamento');
     const qtdPedidosElement = document.getElementById('dash-qtd-pedidos');
     
@@ -406,25 +426,6 @@ ${pedido.status !== 'cancelado' ? `
     if (qtdPedidosElement) qtdPedidosElement.innerText = totalPedidos;
 });
 
-snapshot.docChanges().forEach((change) => {
-    const pedido = change.doc.data();
-    const id = change.doc.id;
-
-    if (change.type === "added" && pedido.status === "pendente") {
-        if (!primeiraCargaPedidos && !pedidosConhecidos.has(id)) {
-            tocarSomNovoPedido();
-            mostrarNotificacaoNovoPedido(pedido);
-
-            if ("vibrate" in navigator) {
-                navigator.vibrate([500, 300, 500, 300, 500]);
-            }
-        }
-
-        pedidosConhecidos.add(id);
-    }
-});
-
-primeiraCargaPedidos = false;
 
 // Função Auxiliar para renderizar o botão certo conforme o status
 // Função Inteligente: Muda o texto do botão conforme a escolha do cliente
