@@ -81,8 +81,57 @@ window.trocarAbaAdmin = (idAba, btn) => {
 };
 
 // --- 2. CONFIGURAÇÕES DE FRETE E STATUS DA LOJA ---
+
 let storeLat = null;
 let storeLng = null;
+let pedidosConhecidos = new Set();
+let primeiraCargaPedidos = true;
+let alarmePedidoAtivo = false;
+
+function pedirPermissaoNotificacao() {
+    if ("Notification" in window && Notification.permission === "default") {
+        Notification.requestPermission();
+    }
+}
+
+function tocarSomNovoPedido() {
+    const audio = document.getElementById("som-novo-pedido");
+
+    if (!audio) return;
+
+    audio.currentTime = 0;
+    audio.loop = true;
+
+    audio.play().catch(() => {
+        console.log("O navegador bloqueou o som até haver interação do usuário.");
+    });
+
+    alarmePedidoAtivo = true;
+}
+
+function pararSomNovoPedido() {
+    const audio = document.getElementById("som-novo-pedido");
+
+    if (audio) {
+        audio.pause();
+        audio.currentTime = 0;
+    }
+
+    alarmePedidoAtivo = false;
+}
+
+function mostrarNotificacaoNovoPedido(pedido) {
+    if (!("Notification" in window)) return;
+
+    if (Notification.permission === "granted") {
+        new Notification("Novo pedido recebido!", {
+            body: `${pedido.clienteNome || "Cliente"} - R$ ${Number(pedido.total || 0).toFixed(2)}`,
+            icon: "icon-192.png"
+        });
+    }
+}
+
+document.addEventListener("click", pedirPermissaoNotificacao, { once: true });
 
 
 // --- CARREGAR CONFIGURAÇÕES AO INICIAR ---
@@ -357,6 +406,26 @@ ${pedido.status !== 'cancelado' ? `
     if (qtdPedidosElement) qtdPedidosElement.innerText = totalPedidos;
 });
 
+snapshot.docChanges().forEach((change) => {
+    const pedido = change.doc.data();
+    const id = change.doc.id;
+
+    if (change.type === "added" && pedido.status === "pendente") {
+        if (!primeiraCargaPedidos && !pedidosConhecidos.has(id)) {
+            tocarSomNovoPedido();
+            mostrarNotificacaoNovoPedido(pedido);
+
+            if ("vibrate" in navigator) {
+                navigator.vibrate([500, 300, 500, 300, 500]);
+            }
+        }
+
+        pedidosConhecidos.add(id);
+    }
+});
+
+primeiraCargaPedidos = false;
+
 // Função Auxiliar para renderizar o botão certo conforme o status
 // Função Inteligente: Muda o texto do botão conforme a escolha do cliente
 function renderBotaoStatus(id, status, metodo) {
@@ -381,6 +450,7 @@ function renderBotaoStatus(id, status, metodo) {
 
 // Função Global para mudar o status no Firebase
 window.alterarStatusPedido = async (id, novoStatus) => {
+    pararSomNovoPedido();
     try {
         await updateDoc(doc(db, "pedidos", id), { status: novoStatus });
     } catch (error) {
@@ -389,6 +459,7 @@ window.alterarStatusPedido = async (id, novoStatus) => {
 };
 
 window.cancelarPedidoAdmin = async (id) => {
+    pararSomNovoPedido();
     if (confirm("Deseja realmente cancelar este pedido?")) {
         try {
             await updateDoc(doc(db, "pedidos", id), { 
