@@ -424,6 +424,17 @@ ${pedido.status !== 'cancelado' ? `
     // Atualiza Dashboard
     if (faturamentoElement) faturamentoElement.innerText = `R$ ${faturamentoTotal.toFixed(2)}`;
     if (qtdPedidosElement) qtdPedidosElement.innerText = totalPedidos;
+
+    const existePedidoPendente = snapshot.docs.some((docSnap) => {
+    const pedido = docSnap.data();
+
+    return pedido.status === "pendente";
+});
+
+if (!existePedidoPendente && alarmePedidoAtivo) {
+    pararSomNovoPedido();
+}
+    
 });
 
 
