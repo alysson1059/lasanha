@@ -84,60 +84,7 @@ window.trocarAbaAdmin = (idAba, btn) => {
 let storeLat = null;
 let storeLng = null;
 
-window.getCurrentLocation = async () => {
 
-    const endereco = document.getElementById('store-address')
-    .value.trim();
-
-    if (!endereco) {
-        alert("Digite o endereço da loja.");
-        return;
-    }
-
-    try {
-
-        const url =
-        `https://api.mapbox.com/geocoding/v5/mapbox.places/${
-            encodeURIComponent(endereco)
-        }.json?country=BR&language=pt&access_token=${MAPBOX_TOKEN}`;
-
-        const resposta = await fetch(url);
-
-        const dados = await resposta.json();
-
-        if (
-            dados.features &&
-            dados.features.length > 0
-        ) {
-
-            storeLng =
-            dados.features[0].center[0];
-
-            storeLat =
-            dados.features[0].center[1];
-
-            alert(
-            "Endereço validado com sucesso!"
-            );
-
-        } else {
-
-            alert(
-            "Endereço não encontrado."
-            );
-
-        }
-
-    } catch(e){
-
-        console.error(e);
-
-        alert(
-        "Erro ao localizar endereço."
-        );
-
-    }
-};
 // --- CARREGAR CONFIGURAÇÕES AO INICIAR ---
 async function loadStoreConfigs() {
     try {
