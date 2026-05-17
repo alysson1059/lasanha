@@ -28,6 +28,38 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const perfilForm = document.getElementById('perfil-form');
 
+if (perfilForm) {
+    perfilForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        const perfilAtual = JSON.parse(localStorage.getItem('perfilCasaLasanha')) || {};
+
+        const dados = {
+            nome: document.getElementById('user-name')?.value || '',
+            telefone: document.getElementById('user-phone')?.value || '',
+            rua: document.getElementById('user-street')?.value || '',
+            numero: document.getElementById('user-number')?.value || '',
+            cep: document.getElementById('user-cep')?.value || '',
+            referencia: document.getElementById('user-ref')?.value || '',
+
+            // preserva GPS já salvo
+            lat: perfilAtual.lat || null,
+            lng: perfilAtual.lng || null
+        };
+
+        localStorage.setItem(
+            'perfilCasaLasanha',
+            JSON.stringify(dados)
+        );
+
+        mostrarAviso("Perfil salvo!");
+
+        if (dados.telefone) {
+            carregarHistoricoPedidos(dados.telefone);
+        }
+    });
+}
+
 let cart = JSON.parse(localStorage.getItem('casaLasanhaCart')) || [];
 let currentCategory = "Promoções";
 let storeConfigs = null;
