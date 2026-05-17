@@ -148,6 +148,8 @@ async function loadStoreConfigs() {
             const data = docSnap.data();
             document.getElementById('store-status-select').value = data.status || 'closed';
             document.getElementById('store-address').value = data.address || '';
+            document.getElementById('store-number').value = data.storeNumber || '';
+            document.getElementById('store-cep').value = data.storeCep || '';
             document.getElementById('store-visible-address').value = data.storeVisibleAddress || '';
             document.getElementById('free-km').value = data.freeKm || '';
             document.getElementById('km-value').value = data.kmValue || '';
@@ -163,40 +165,55 @@ async function loadStoreConfigs() {
 
 // --- SALVAR CONFIGURAÇÕES ---
 document.getElementById('btn-save-configs').onclick = async () => {
-   const enderecoDigitado =
-document.getElementById('store-address')
-.value.trim();
+    const enderecoDigitado = document.getElementById('store-address').value.trim();
+    const numeroLoja = document.getElementById('store-number').value.trim();
+    const cepLoja = document.getElementById('store-cep').value.trim();
 
-await getCurrentLocation();
+    if (!enderecoDigitado || !numeroLoja) {
+        alert("Informe o endereço e o número da loja.");
+        return;
+    }
 
-if (!storeLat || !storeLng) {
-    alert(
-    "Endereço inválido."
-    );
-    return;
-}
-
-  const config = {
-    status: document.getElementById('store-status-select').value,
-
-    // GPS usado apenas para cálculo do frete
-    address: enderecoDigitado,
-    storeLat: storeLat,
-    storeLng: storeLng,
-
-    // Endereço bonito que aparece para o cliente
-    storeVisibleAddress: document.getElementById('store-visible-address').value.trim(),
-
-    freeKm: Number(document.getElementById('free-km').value),
-    kmValue: document.getElementById('km-value').value,
-    fixedValue: document.getElementById('fixed-delivery').value
-};
+    const enderecoBusca = `${enderecoDigitado}, ${numeroLoja}, ${cepLoja}, Sergipe, Brasil`;
 
     try {
+        const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(enderecoBusca)}.json?country=BR&language=pt&access_token=${MAPBOX_TOKEN}`;
+
+        const resposta = await fetch(url);
+        const dados = await resposta.json();
+
+        if (dados.features && dados.features.length > 0) {
+            storeLng = dados.features[0].center[0];
+            storeLat = dados.features[0].center[1];
+        } else {
+            alert("Endereço da loja não encontrado. Verifique rua, número e CEP.");
+            return;
+        }
+
+        const config = {
+            status: document.getElementById('store-status-select').value,
+
+            address: enderecoDigitado,
+            storeNumber: numeroLoja,
+            storeCep: cepLoja,
+
+            storeLat: storeLat,
+            storeLng: storeLng,
+
+            storeVisibleAddress: document.getElementById('store-visible-address').value.trim(),
+
+            freeKm: Number(document.getElementById('free-km').value),
+            kmValue: document.getElementById('km-value').value,
+            fixedValue: document.getElementById('fixed-delivery').value
+        };
+
         await setDoc(doc(db, "configuracoes", "loja"), config);
-        alert("Configurações da Casa da Lasanha salvas com sucesso!");
+
+        alert("Configurações salvas e endereço da loja validado!");
+
     } catch (error) {
-        alert("Erro ao salvar: " + error.message);
+        console.error(error);
+        alert("Erro ao validar/salvar endereço da loja.");
     }
 };
 
