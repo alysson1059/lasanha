@@ -658,22 +658,18 @@ function converterNumero(valor) {
     return parseFloat(String(valor).replace(',', '.')) || 0;
 }
 
-function calcularDistanciaKm(lat1, lon1, lat2, lon2) {
-    const R = 6371; // raio da Terra em KM
+async function calcularDistanciaKm(latLoja, lngLoja, latCliente, lngCliente) {
+    const url = `https://api.mapbox.com/directions/v5/mapbox/driving/${lngLoja},${latLoja};${lngCliente},${latCliente}?geometries=geojson&overview=false&access_token=${MAPBOX_TOKEN}`;
 
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const resposta = await fetch(url);
+    const dados = await resposta.json();
 
-    const a =
-        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-        Math.cos(lat1 * Math.PI / 180) *
-        Math.cos(lat2 * Math.PI / 180) *
-        Math.sin(dLon / 2) *
-        Math.sin(dLon / 2);
+    if (!dados.routes || dados.routes.length === 0) {
+        throw new Error("Não foi possível calcular a rota.");
+    }
 
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-    return R * c;
+    const distanciaMetros = dados.routes[0].distance;
+    return distanciaMetros / 1000;
 }
 
 async function calcularFreteAutomatico() {
@@ -711,12 +707,26 @@ console.log("Lat cliente:", perfil.lat);
 console.log("Lng cliente:", perfil.lng);
 console.log("=======================");
 
-    const distanciaKm = calcularDistanciaKm(
+    let distanciaKm = 0;
+
+try {
+    distanciaKm = await calcularDistanciaKm(
         Number(storeConfigs.storeLat),
         Number(storeConfigs.storeLng),
         Number(perfil.lat),
         Number(perfil.lng)
     );
+} catch (error) {
+    console.error("Erro ao calcular rota Mapbox:", error);
+    currentDeliveryFee = converterNumero(storeConfigs?.fixedValue);
+
+    if (textoFrete) {
+        textoFrete.innerText = `Taxa de Entrega: R$ ${currentDeliveryFee.toFixed(2).replace('.', ',')}`;
+    }
+
+    renderCartItems();
+    return;
+}
 
     const freeKm = converterNumero(storeConfigs.freeKm);
     const valorPorKm = converterNumero(storeConfigs.kmValue);
