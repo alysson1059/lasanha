@@ -274,3 +274,37 @@ body { background: var(--bg); padding-bottom: 80px; }
     font-weight: bold;
     background: #eee;
 }
+
+/* Correção mobile - pedidos ADM */
+
+@media (max-width:768px){
+
+    .pedido-admin-card{
+        padding:12px;
+        overflow:visible;
+    }
+
+    .pedido-admin-card div[id^="acoes-"]{
+        display:flex;
+        flex-direction:column;
+        gap:8px;
+        margin-top:10px;
+    }
+
+    .pedido-admin-card .btn-save{
+        width:100%;
+        font-size:14px;
+        padding:12px;
+        white-space:normal;
+    }
+
+    .pedido-admin-card > div:first-child{
+        flex-direction:column !important;
+        align-items:flex-start !important;
+        gap:8px;
+    }
+
+    .badge-status{
+        align-self:flex-start;
+    }
+}
