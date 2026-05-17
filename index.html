@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Casa da Lasanha - Sabores Clássicos</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#5C1518">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Casa da Lasanha">
+    <link rel="apple-touch-icon" href="icon-192.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
@@ -236,5 +241,19 @@
         </div>
     </div>
 </div>
+
+    <div id="install-pwa-box" style="display:none; position:fixed; bottom:90px; left:15px; right:15px; background:#5C1518; color:white; padding:15px; border-radius:12px; z-index:4000; box-shadow:0 4px 15px rgba(0,0,0,0.3); text-align:center;">
+    <strong>Instale nosso app</strong>
+    <p id="install-pwa-text" style="font-size:0.85rem; margin:8px 0;">Acesse a Casa da Lasanha mais rápido pelo seu celular.</p>
+    <button id="btn-install-pwa" style="background:#5D7D2B; color:white; border:none; padding:10px 18px; border-radius:8px; font-weight:bold; cursor:pointer;">
+        Instalar App
+    </button>
+    <button onclick="document.getElementById('install-pwa-box').style.display='none'" style="background:transparent; color:white; border:none; margin-left:10px; cursor:pointer;">
+        Agora não
+    </button>
+</div>
+
+<script src="pwa-install.js"></script>
+    
 </body>
 </html>
