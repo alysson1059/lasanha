@@ -27,36 +27,70 @@ import {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const perfilForm = document.getElementById('perfil-form');
+const MAPBOX_TOKEN = "pk.eyJ1IjoibWFub2tlZmYiLCJhIjoiY21wYTY1eHpkMHZkNjJ0b280b2xyYmZmeiJ9.jpj9V94TBtGVzghcmAQu4A";
 
 if (perfilForm) {
-    perfilForm.addEventListener('submit', (e) => {
+    perfilForm.addEventListener('submit', async (e) => {
         e.preventDefault();
 
         const perfilAtual = JSON.parse(localStorage.getItem('perfilCasaLasanha')) || {};
 
-        const dados = {
-            nome: document.getElementById('user-name')?.value || '',
-            telefone: document.getElementById('user-phone')?.value || '',
-            rua: document.getElementById('user-street')?.value || '',
-            numero: document.getElementById('user-number')?.value || '',
-            cep: document.getElementById('user-cep')?.value || '',
-            referencia: document.getElementById('user-ref')?.value || '',
+        const nome = document.getElementById('user-name')?.value || '';
+        const telefone = document.getElementById('user-phone')?.value || '';
+        const rua = document.getElementById('user-street')?.value || '';
+        const numero = document.getElementById('user-number')?.value || '';
+        const cep = document.getElementById('user-cep')?.value || '';
+        const referencia = document.getElementById('user-ref')?.value || '';
 
-            // preserva GPS já salvo
-            lat: perfilAtual.lat || null,
-            lng: perfilAtual.lng || null
+        const enderecoBusca = `${rua}, ${numero}, ${cep}, Sergipe, Brasil`;
+
+        mostrarAviso("Validando endereço...");
+
+        let lat = perfilAtual.lat || null;
+        let lng = perfilAtual.lng || null;
+
+        try {
+            const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(enderecoBusca)}.json?country=BR&language=pt&access_token=${MAPBOX_TOKEN}`;
+
+            const resposta = await fetch(url);
+            const resultado = await resposta.json();
+
+            if (resultado.features && resultado.features.length > 0) {
+                lng = resultado.features[0].center[0];
+                lat = resultado.features[0].center[1];
+            } else {
+                alert("Não conseguimos localizar esse endereço. Verifique rua, número, bairro ou CEP.");
+                return;
+            }
+
+        } catch (error) {
+            console.error("Erro Mapbox:", error);
+            alert("Erro ao validar endereço. Tente novamente.");
+            return;
+        }
+
+        const dados = {
+            nome,
+            telefone,
+            rua,
+            numero,
+            cep,
+            referencia,
+            lat,
+            lng
         };
 
-        localStorage.setItem(
-            'perfilCasaLasanha',
-            JSON.stringify(dados)
-        );
+        localStorage.setItem('perfilCasaLasanha', JSON.stringify(dados));
 
-        mostrarAviso("Perfil salvo!");
+        gpsValidado = true;
+
+        mostrarAviso("Perfil salvo e endereço validado!");
 
         if (dados.telefone) {
             carregarHistoricoPedidos(dados.telefone);
         }
+
+        calcularFreteAutomatico();
     });
 }
 
@@ -294,14 +328,13 @@ if (checkoutBtn) {
 
         // --- PASSO C: TRAVA DE SEGURANÇA ---
         // Se for entrega E o GPS não foi validado E não temos coordenadas salvas...
-        if (metodoEnvio === 'entrega' && !gpsValidado && (!perfil || !perfil.lat)) {
-            alert("⚠️ Atenção: Para pedidos de entrega, você precisa validar sua localização no 'Perfil' usando o botão GPS para calcularmos o frete corretamente.");
-            
-            // Leva o usuário automaticamente para a aba de Perfil para ele clicar no botão
-            const navItems = document.querySelectorAll('.nav-item');
-            trocarAba('aba-perfil', navItems[2]); 
-            return; // Interrompe o envio do pedido aqui
-        }
+       if (metodoEnvio === 'entrega' && (!perfil || !perfil.lat || !perfil.lng)) {
+    alert("⚠️ Atenção: Para pedidos de entrega, preencha e salve seu endereço no Perfil para calcularmos o frete.");
+    
+    const navItems = document.querySelectorAll('.nav-item');
+    trocarAba('aba-perfil', navItems[2]); 
+    return;
+}
 
         // --- RESTANTE DO SEU CÓDIGO DE CHECKOUT (Pagamento, WhatsApp, Firebase...) ---
         const formaPagamento = document.getElementById('payment-method').value;
