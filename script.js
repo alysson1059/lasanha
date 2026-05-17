@@ -339,18 +339,27 @@ if (checkoutBtn) {
             const metodoEnvio = document.getElementById('metodo-envio').value;
 
             // 4. SALVA O PEDIDO NO FIREBASE (Atualizado com frete e método)
-            await addDoc(collection(db, "pedidos"), {
-                clienteNome: perfil.nome,
-                telefoneCliente: perfil.telefone,
-                endereco: enderecoCompleto,
-                resumoItens: resumoItens,
-                total: totalPedido + currentDeliveryFee, // Salva o total já com o frete
-                metodo: metodoEnvio,                      // NOVO: Salva se é entrega ou retirada
-                taxaEntrega: currentDeliveryFee,          // NOVO: Salva o valor do frete cobrado
-                formaPagamento: formaPagamento,
-                status: "pendente",
-                data: serverTimestamp()
-            });
+           await addDoc(collection(db, "pedidos"), {
+    clienteNome: perfil.nome,
+    telefoneCliente: perfil.telefone,
+    endereco: enderecoCompleto,
+
+    lat: perfil.lat || null,
+    lng: perfil.lng || null,
+
+    localizacaoLink:
+        (perfil.lat && perfil.lng)
+        ? `https://maps.google.com/?q=${perfil.lat},${perfil.lng}`
+        : null,
+
+    resumoItens: resumoItens,
+    total: totalPedido + currentDeliveryFee,
+    metodo: metodoEnvio,
+    taxaEntrega: currentDeliveryFee,
+    formaPagamento: formaPagamento,
+    status: "pendente",
+    data: serverTimestamp()
+});
 
             // 5. MONTA A MENSAGEM PARA WHATSAPP
             let message = `*Pedido Casa da Lasanha*\n\n`;
